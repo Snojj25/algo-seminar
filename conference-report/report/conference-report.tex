@@ -1,0 +1,235 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\title{PODS 2025 --- Conference Report}
+\author{Group seminar, Algorithms course, UL FRI \\ \small{(authors to be filled in)}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{The conference at a glance}
+
+The 44th ACM SIGMOD-SIGACT-SIGAI Symposium on Principles of Database Systems
+(PODS 2025) was held jointly with SIGMOD 2025 in Berlin, Germany, in June 2025.
+The proceedings appear as Volume~3, Issue~2 of the \emph{Proceedings of the ACM
+on Management of Data} (PACMMOD), published in May 2025
+(\url{https://dl.acm.org/toc/pacmmod/2025/3/N2}). The volume opens with an
+editorial by Carmeli, Geerts, Kara and Kimelfeld (Article~87) and contains
+30~research papers as Articles~88--117.
+
+This report covers the December~2024 submission cycle of PODS~2025, whose
+papers populate the issue above. Out of $80$ submitted papers, $30$ were
+accepted, an acceptance rate of $37.5\%$. (For context, across both
+submission cycles the conference accepted $45$ of $127$ papers, $35.4\%$, but
+the second cycle is published in a separate issue.)
+
+\subsection*{Topics}
+
+PODS is the flagship venue for theoretical work on database systems. The 30
+papers in this issue cluster around the following themes:
+
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+  \item query languages and their evaluation: conjunctive queries, regular
+        path queries, Datalog, and disjunctive variants;
+  \item information-theoretic and worst-case-optimal join algorithms,
+        including new uses of fast matrix multiplication;
+  \item differential privacy, streaming and sketching algorithms over
+        relational data, including robust variants over noisy inputs;
+  \item randomised data structures and their adversarial robustness, in
+        particular locality-sensitive hashing and sketches;
+  \item graph algorithms, dynamic data structures and complexity theory;
+  \item explainability, provenance and responsibility measures for query
+        answers;
+  \item data integration, schema matching and emerging applications such as
+        quantum optimisation for database problems.
+\end{itemize}
+
+\section{Selected paper summaries}
+
+We selected three papers spanning very different parts of this landscape:
+a deep theoretical advance in worst-case-optimal join evaluation that
+folds fast matrix multiplication into the polymatroid framework; a sharp
+attack on locality-sensitive hashing that quantifies how fragile its
+textbook guarantee becomes against an adaptive adversary; and a streaming
+algorithm for robust distinct-element counting and $\ell_0$-sampling in
+general metric spaces, with a matching lower bound.
+
+\subsection*{Abo Khamis, Hu, Suciu.\\
+\emph{Fast Matrix Multiplication meets the Submodular Width.}\\
+PACMMOD Vol.~3, No.~2 (PODS~'25), Article~98.}
+
+The data complexity of evaluating a Boolean conjunctive query (CQ) is a
+central question in database theory. The \emph{submodular width} of a query
+characterises the running time of optimal combinatorial algorithms; the AGM
+bound, fractional hypertree width, and the PANDA framework live in this
+combinatorial setting. In parallel, \emph{fast matrix multiplication} (FMM),
+which multiplies two $n \times n$ matrices in time $O(n^\omega)$ for
+$\omega < 2.4$, has been used in scattered, ad-hoc results to beat the
+combinatorial bounds for specific queries such as $k$-clique counting. A
+unifying picture of when and how FMM helps was missing.
+
+Abo~Khamis, Hu and Suciu close this gap. They introduce the
+\emph{$\omega$-submodular width}, a refinement of submodular width
+parameterised by the matrix-multiplication exponent~$\omega$. The new
+parameter is never larger than the classical submodular width and equals it
+when $\omega = 3$ (the FMM-free regime). Their main result, Theorem~7.1,
+states that for every Boolean CQ~$Q$ and every rational $\omega$, there is
+an algorithm that evaluates $Q$ in time
+$\widetilde{O}\!\left(N^{\omega\text{-}\mathrm{subw}(Q)}\right)$, where $N$
+is the input size and $\widetilde{O}$ hides polylogarithmic factors. This is
+the first systematic statement that FMM-aided algorithms fit into the same
+information-theoretic framework that yielded worst-case-optimal joins.
+
+The proof extends the PANDA machinery. Degree configurations of the input
+relations are modelled as edge-dominated polymatroids; Shannon inequalities
+(monotonicity, submodularity) bound the sizes of intermediate results; and
+$\omega$-submodular width is read off from a polymatroid LP. The new
+ingredients are a formal calculus of \emph{matrix-multiplication
+expressions} (Definition~4.2) and a corresponding \emph{variable
+elimination via matrix multiplication} (Definition~4.5), which permits FMM
+steps as legal moves inside an otherwise standard query plan. A generalised
+Reset Lemma (Lemma~A.7), strengthening the PANDA Reset Lemma to handle
+$\omega$-Shannon inequalities with proper dominance, is the technical heart
+of the upper bound.
+
+The paper does more than unify. Table~1 lists concrete query classes ---
+$k$-cliques, $k$-cycles, $k$-pyramids --- for which $\omega$-submodular
+width is strictly smaller than submodular width, yielding new
+fastest-known algorithms. The framework also extends to disjunctive Datalog
+rules, suggesting it should be useful well beyond Boolean CQs. Two
+takeaways stand out: first, fast matrix multiplication --- often viewed as
+an exotic primitive --- fits neatly into the polymatroid and
+Shannon-inequality picture once degree configurations are made central;
+second, the unification immediately yields new algorithms, not just
+retrospective explanations of old ones.
+
+\subsection*{Kapralov, Makarov, Sohler.\\
+\emph{On the Adversarial Robustness of Locality-Sensitive Hashing in
+Hamming Space.}\\
+PACMMOD Vol.~3, No.~2 (PODS~'25), Article~102.}
+
+Locality-sensitive hashing (LSH) is a workhorse data structure for
+approximate nearest-neighbour search in high-dimensional spaces; its
+variants underlie image and music retrieval, anomaly detection, clustering
+and many database join primitives. The classical analysis guarantees that,
+for a query chosen \emph{independently} of the data structure's random
+hash functions, the probability of a false negative --- missing a point
+within distance $r$ when one exists --- is at most a small parameter
+$\delta$. The guarantee is fragile, however, when the same query stream
+can react to earlier responses. How fast can an adaptive adversary actually
+break LSH?
+
+For LSH in Hamming space the answer turns out to be: very fast.
+Kapralov, Makarov and Sohler prove (Theorem~1.1) that an adversary with
+only black-box access to the LSH query interface --- no knowledge of the
+hash families or seeds --- can drive the structure into a false negative
+on a chosen target point using $O(\log(cr)\cdot\log(1/\delta))$ adaptive
+queries, where $r$ is the LSH distance parameter and $c$ the approximation
+factor. The contrast with the non-adaptive setting is dramatic: blind
+random sampling needs $\Omega(1/\delta)$ trials, an exponential gap.
+
+The attack (Algorithm~2) is an \emph{adaptive walk} starting from an
+isolated target point $z$ in the dataset. The adversary samples a query at
+distance $r-t$ from $z$, observes which neighbours LSH returns, and then
+flips individual coordinates of the query to drift it away from $z$ while
+keeping collisions inside the hash buckets that LSH actually inspects.
+Lemmas~4.1, 4.5 and 4.7 control the number of hash functions involved, the
+expected bucket sizes and the collision probabilities across hash
+families. A Chernoff-bound analysis ties these together to show that the
+walk succeeds with high probability after the stated number of steps.
+
+The result fills a long-standing gap in the adversarial-robustness
+literature. While the streaming community has produced a sequence of
+attacks and defences for randomised sketches over recent years, an
+analogous attack on LSH itself --- arguably the more widely deployed of the
+two primitives --- had been missing. The paper makes the practical
+implication explicit: any system that exposes LSH outputs to inputs that
+later queries can be derived from (online retrieval, recommendation,
+anomaly-detection feedback loops) cannot lean on the textbook $\delta$
+guarantee. It closes by discussing robustness-aware variants and
+verification as natural follow-up directions, framing the attack as an
+opening shot rather than a final word.
+
+\subsection*{Qin Zhang.\\
+\emph{Robust Statistical Analysis on Streaming Data with Near-Duplicates
+in General Metric Spaces.}\\
+PACMMOD Vol.~3, No.~2 (PODS~'25), Article~111.}
+
+Real streaming data --- sensor traces, image feeds, repeatedly measured
+quantum states, free-text records --- is rarely clean: near-duplicates are
+the norm. Two items that should be treated as the same entity are typically
+only \emph{close} under some metric rather than literally equal, and an
+upfront cleaning step is usually infeasible at stream rates. The
+\emph{robust} versions of the two foundational streaming primitives ---
+$F_0$ (the count of distinct items) and $\ell_0$-sampling (uniform sampling
+from the distinct set) --- collapse near-duplicates into equivalence
+classes and ask for correct behaviour on the resulting universe. Prior work
+handled these robust variants only in $O(1)$-dimensional Euclidean space.
+
+Qin Zhang lifts the picture to general metric spaces, in a single pass and
+sub-linear space. The paper splits the problem into two regimes. For
+\emph{well-shaped} inputs, in which equivalence classes are well separated
+under the metric, two upper bounds are given: a streaming algorithm
+computing a $(1\pm\varepsilon)$ approximation of robust $F_0$ in
+$O\!\left(\min\{(1/\varepsilon)\sqrt{m\log(1/\varepsilon)},\,F_0\}\right)$
+words (Section~2), and a robust $\ell_0$-sampler in $O(\sqrt{m})$ words
+(Section~3). For arbitrary inputs, the right notion is robust $F_0$ up to
+an $F_0$-ambiguity parameter $\tau$ that captures items lying in the
+borderlands between equivalence classes; Section~4 gives a
+$(1\pm\varepsilon)$ approximation in $O((1/\varepsilon)\sqrt{m\log m})$
+words for that setting. A matching lower bound in Section~5 shows that
+even a $1.1$-factor approximation requires $\Omega(\sqrt{m})$ bits,
+sharply separating the general-metric setting from the classical case
+where $O(\log n)$ space suffices.
+
+The algorithmic ingredients are familiar in shape but carefully adapted to
+non-Euclidean geometry: a grid partition takes the place of the cell
+partition that worked in low-dimensional Euclidean space; a global
+``zero-function'' threshold makes sampling consistent across the stream;
+robust counts are read off as minimum-cardinality valid partitions; and
+Chernoff bounds discipline deviations across the hash families used to
+identify near-duplicates. It is the grid step that turns logarithmic space
+into $\sqrt{m}$ space: in a general metric the number of buckets the
+algorithm has to track grows polynomially in $m$ rather than only
+logarithmically.
+
+The interest of the paper is twofold. Practically, it provides the first
+principled streaming primitive for robust $F_0$ and $\ell_0$-sampling in
+settings whose geometry is not low-dimensional Euclidean: textual edit
+distance, tree edit distance, image-feature distance, and trace distance
+between quantum states. That last setting is the paper's most striking
+motivation --- learning a $d$-dimensional quantum state requires
+$\Omega(d/\varepsilon^2)$ noisy copies, producing a stream of
+approximately-but-never-exactly-equal observations that classical
+distinct-element machinery cannot consume directly. Theoretically, the
+$\Omega(\sqrt{m})$ lower bound is the headline: moving from low-dimensional
+Euclidean to general metrics is not a small quantitative slowdown but a
+qualitative jump in how much memory robust streaming inherently needs.
+
+\section*{References (proceedings)}
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item M.~Abo~Khamis, X.~Hu, D.~Suciu. \emph{Fast Matrix Multiplication
+        meets the Submodular Width.} PACMMOD Vol.~3, No.~2 (PODS~'25),
+        Article~98.
+  \item M.~Kapralov, M.~Makarov, C.~Sohler. \emph{On the Adversarial
+        Robustness of Locality-Sensitive Hashing in Hamming Space.}
+        PACMMOD Vol.~3, No.~2 (PODS~'25), Article~102.
+  \item Q.~Zhang. \emph{Robust Statistical Analysis on Streaming Data
+        with Near-Duplicates in General Metric Spaces.} PACMMOD Vol.~3,
+        No.~2 (PODS~'25), Article~111.
+\end{itemize}
+
+Full proceedings: \url{https://dl.acm.org/toc/pacmmod/2025/3/N2}.
+
+\end{document}
