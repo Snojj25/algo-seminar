@@ -12,48 +12,51 @@ Reallocated global_strs (elt_size=200001) to 20 items from 10.
 Reallocated glb_str_end (elt_size=4) to 20 items from 10.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
+Warning--empty publisher in ADW25
+Warning--empty address in ADW25
 Warning--empty address in HHH22
 Warning--empty publisher in HKNS15
 Warning--empty address in HKNS15
-You've used 4 entries,
+Warning--page numbers missing in both pages and numpages fields in NPRR18
+You've used 13 entries,
             6056 wiz_defined-function locations,
-            1515 strings with 18798 characters,
-and the built_in function-call counts, 4837 in all, are:
-= -- 585
-> -- 148
+            1578 strings with 20280 characters,
+and the built_in function-call counts, 15298 in all, are:
+= -- 2032
+> -- 501
 < -- 0
-+ -- 52
-- -- 50
-* -- 340
-:= -- 460
-add.period$ -- 20
-call.type$ -- 4
-change.case$ -- 31
-chr.to.int$ -- 4
-cite$ -- 7
-duplicate$ -- 432
-empty$ -- 304
-format.name$ -- 66
-if$ -- 1149
++ -- 174
+- -- 167
+* -- 1103
+:= -- 1463
+add.period$ -- 65
+call.type$ -- 13
+change.case$ -- 102
+chr.to.int$ -- 13
+cite$ -- 19
+duplicate$ -- 1314
+empty$ -- 931
+format.name$ -- 215
+if$ -- 3770
 int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 14
-newline$ -- 71
-num.names$ -- 28
-pop$ -- 166
+missing$ -- 47
+newline$ -- 142
+num.names$ -- 91
+pop$ -- 500
 preamble$ -- 1
-purify$ -- 62
+purify$ -- 205
 quote$ -- 0
-skip$ -- 166
+skip$ -- 469
 stack$ -- 0
-substring$ -- 381
-swap$ -- 45
+substring$ -- 1179
+swap$ -- 132
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 106
-warning$ -- 3
-while$ -- 25
+type$ -- 278
+warning$ -- 6
+while$ -- 81
 width$ -- 0
-write$ -- 114
-(There were 3 warnings)
+write$ -- 282
+(There were 6 warnings)

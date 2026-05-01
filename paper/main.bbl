@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{4}
+\begin{thebibliography}{13}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -35,6 +35,29 @@
 \providecommand\bibinfo[2]{#2}
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Alman et~al\mbox{.}(2025)]%
+        {ADW25}
+\bibfield{author}{\bibinfo{person}{Josh Alman}, \bibinfo{person}{Ran Duan},
+  \bibinfo{person}{Virginia~Vassilevska Williams}, \bibinfo{person}{Yinzhan
+  Xu}, \bibinfo{person}{Zixuan Xu}, {and} \bibinfo{person}{Renfei Zhou}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{More Asymmetry Yields Faster Matrix
+  Multiplication}. In \bibinfo{booktitle}{\emph{Proceedings of the 2025 Annual
+  ACM-SIAM Symposium on Discrete Algorithms (SODA)}}.
+  \bibinfo{pages}{2005--2039}.
+\newblock
+
+
+\bibitem[Alon et~al\mbox{.}(1997)]%
+        {AYZ97}
+\bibfield{author}{\bibinfo{person}{Noga Alon}, \bibinfo{person}{Raphael
+  Yuster}, {and} \bibinfo{person}{Uri Zwick}.} \bibinfo{year}{1997}\natexlab{}.
+\newblock \showarticletitle{Finding and Counting Given Length Cycles}.
+\newblock \bibinfo{journal}{\emph{Algorithmica}} \bibinfo{volume}{17},
+  \bibinfo{number}{3} (\bibinfo{year}{1997}), \bibinfo{pages}{209--223}.
+\newblock
+
 
 \bibitem[Assadi and Shah(2025)]%
         {AssadiShah25}
@@ -83,6 +106,87 @@
 \newblock \bibinfo{journal}{\emph{ACM Transactions on Database Systems}}
   \bibinfo{volume}{45}, \bibinfo{number}{3} (\bibinfo{year}{2020}),
   \bibinfo{pages}{11:1--11:46}.
+\newblock
+
+
+\bibitem[Leskovec and Krevl(2014)]%
+        {SNAP}
+\bibfield{author}{\bibinfo{person}{Jure Leskovec} {and} \bibinfo{person}{Andrej
+  Krevl}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \bibinfo{title}{{SNAP Datasets}: {Stanford} Large Network Dataset
+  Collection}.
+\newblock \bibinfo{howpublished}{\url{http://snap.stanford.edu/data}}.
+\newblock
+
+
+\bibitem[Milo et~al\mbox{.}(2002)]%
+        {MSOI02}
+\bibfield{author}{\bibinfo{person}{Ron Milo}, \bibinfo{person}{Shai Shen-Orr},
+  \bibinfo{person}{Shalev Itzkovitz}, \bibinfo{person}{Nadav Kashtan},
+  \bibinfo{person}{Dmitri Chklovskii}, {and} \bibinfo{person}{Uri Alon}.}
+  \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{Network Motifs: Simple Building Blocks of Complex
+  Networks}.
+\newblock \bibinfo{journal}{\emph{Science}} \bibinfo{volume}{298},
+  \bibinfo{number}{5594} (\bibinfo{year}{2002}), \bibinfo{pages}{824--827}.
+\newblock
+
+
+\bibitem[Ngo et~al\mbox{.}(2018)]%
+        {NPRR18}
+\bibfield{author}{\bibinfo{person}{Hung~Q. Ngo}, \bibinfo{person}{Ely Porat},
+  \bibinfo{person}{Christopher R{\'e}}, {and} \bibinfo{person}{Atri Rudra}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Worst-Case Optimal Join Algorithms}.
+\newblock \bibinfo{journal}{\emph{J. ACM}} \bibinfo{volume}{65},
+  \bibinfo{number}{3} (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Ngo et~al\mbox{.}(2014)]%
+        {NRR14}
+\bibfield{author}{\bibinfo{person}{Hung~Q. Ngo}, \bibinfo{person}{Christopher
+  R{\'e}}, {and} \bibinfo{person}{Atri Rudra}.}
+  \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Skew Strikes Back: New Developments in the Theory
+  of Join Algorithms}.
+\newblock \bibinfo{journal}{\emph{ACM SIGMOD Record}} \bibinfo{volume}{42},
+  \bibinfo{number}{4} (\bibinfo{year}{2014}), \bibinfo{pages}{5--16}.
+\newblock
+
+
+\bibitem[Ribeiro et~al\mbox{.}(2021)]%
+        {RPS21}
+\bibfield{author}{\bibinfo{person}{Pedro Ribeiro}, \bibinfo{person}{Pedro
+  Paredes}, \bibinfo{person}{Miguel E.~P. Silva}, \bibinfo{person}{David
+  Aparicio}, {and} \bibinfo{person}{Fernando Silva}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{A Survey on Subgraph Counting: Concepts,
+  Algorithms, and Applications to Network Motifs and Graphlets}.
+\newblock \bibinfo{journal}{\emph{Comput. Surveys}} \bibinfo{volume}{54},
+  \bibinfo{number}{2} (\bibinfo{year}{2021}), \bibinfo{pages}{1--36}.
+\newblock
+
+
+\bibitem[Sahu et~al\mbox{.}(2020)]%
+        {SMS20}
+\bibfield{author}{\bibinfo{person}{Siddhartha Sahu}, \bibinfo{person}{Amine
+  Mhedhbi}, \bibinfo{person}{Semih Salihoglu}, \bibinfo{person}{Jimmy Lin},
+  {and} \bibinfo{person}{M.~Tamer {\"O}zsu}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{The Ubiquity of Large Graphs and Surprising
+  Challenges of Graph Processing: Extended Survey}.
+\newblock \bibinfo{journal}{\emph{The VLDB Journal}}  \bibinfo{volume}{29}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{595--618}.
+\newblock
+
+
+\bibitem[Strassen(1969)]%
+        {Strassen69}
+\bibfield{author}{\bibinfo{person}{Volker Strassen}.}
+  \bibinfo{year}{1969}\natexlab{}.
+\newblock \showarticletitle{Gaussian Elimination is Not Optimal}.
+\newblock \bibinfo{journal}{\emph{Numer. Math.}} \bibinfo{volume}{13},
+  \bibinfo{number}{4} (\bibinfo{year}{1969}), \bibinfo{pages}{354--356}.
 \newblock
 
 
