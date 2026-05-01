@@ -1,0 +1,89 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{4}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{} and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Assadi and Shah(2025)]%
+        {AssadiShah25}
+\bibfield{author}{\bibinfo{person}{Sepehr Assadi} {and} \bibinfo{person}{Vihan
+  Shah}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{An Improved Fully Dynamic Algorithm for Counting
+  4-Cycles in General Graphs using Fast Matrix Multiplication}.
+\newblock
+\showeprint[arxiv]{2504.10748}~[cs.DS]
+\newblock
+\shownote{PODS 2025, Article 091. \url{https://doi.org/10.1145/3725228}}.
+
+
+\bibitem[Hanauer et~al\mbox{.}(2022)]%
+        {HHH22}
+\bibfield{author}{\bibinfo{person}{Kathrin Hanauer}, \bibinfo{person}{Monika
+  Henzinger}, {and} \bibinfo{person}{Qi~Cheng Hua}.}
+  \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Fully Dynamic Four-Vertex Subgraph Counting}. In
+  \bibinfo{booktitle}{\emph{1st Symposium on Algorithmic Foundations of Dynamic
+  Networks (SAND 2022)}} \emph{(\bibinfo{series}{LIPIcs},
+  Vol.~\bibinfo{volume}{221})}. \bibinfo{publisher}{Schloss Dagstuhl --
+  Leibniz-Zentrum f{\"u}r Informatik}, \bibinfo{pages}{18:1--18:17}.
+\newblock
+
+
+\bibitem[Henzinger et~al\mbox{.}(2015)]%
+        {HKNS15}
+\bibfield{author}{\bibinfo{person}{Monika Henzinger},
+  \bibinfo{person}{Sebastian Krinninger}, \bibinfo{person}{Danupon Nanongkai},
+  {and} \bibinfo{person}{Thatchaphol Saranurak}.}
+  \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Unifying and Strengthening Hardness for Dynamic
+  Problems via the Online Matrix-Vector Multiplication Conjecture}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the Forty-Seventh Annual ACM
+  Symposium on Theory of Computing (STOC)}}. \bibinfo{pages}{21--30}.
+\newblock
+
+
+\bibitem[Kara et~al\mbox{.}(2020)]%
+        {KNN20}
+\bibfield{author}{\bibinfo{person}{Ahmet Kara}, \bibinfo{person}{Hung~Q. Ngo},
+  \bibinfo{person}{Milos Nikolic}, \bibinfo{person}{Dan Olteanu}, {and}
+  \bibinfo{person}{Haozhe Zhang}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Maintaining Triangle Queries under Updates}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Database Systems}}
+  \bibinfo{volume}{45}, \bibinfo{number}{3} (\bibinfo{year}{2020}),
+  \bibinfo{pages}{11:1--11:46}.
+\newblock
+
+
+\end{thebibliography}

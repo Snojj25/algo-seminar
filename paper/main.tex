@@ -1,0 +1,495 @@
+%% main.tex -- essay scaffold
+%% Source-of-truth for content and paper-mappings: ../SECTIONS.md
+%% Build:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+%%
+%% For EasyChair anonymous submission, swap the documentclass line for
+%%   \documentclass[sigconf,anonymous,review,nonacm]{acmart}
+%% Before final submission, decide on \nonacm vs the rights-management commands.
+
+\documentclass[sigconf,nonacm]{acmart}
+
+%% ---------------------------------------------------------------
+%% Packages
+%% acmart already loads amsmath, amsthm, booktabs, graphicx, hyperref, xcolor.
+%% Do NOT load amssymb: it conflicts with acmart's newtxmath (\Bbbk redefinition).
+%% ---------------------------------------------------------------
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+%% TODO macro: visible inline marker. Strip before final submission with
+%%   \renewcommand{\todo}[1]{}
+\newcommand{\todo}[1]{{\color{red}\textbf{[TODO:} #1\textbf{]}}}
+
+%% Theorem environments (acmart loads acmthm.sty by default; restate cleanly)
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+%% Convenience macros
+\newcommand{\Otil}{\widetilde{O}}
+\newcommand{\fmm}{\omega}
+\newcommand{\rfmm}[3]{\omega(#1,#2,#3)}
+\newcommand{\fourcyc}{4\text{-cycle}}
+
+\begin{document}
+
+%% ---------------------------------------------------------------
+%% Front matter
+%% ---------------------------------------------------------------
+\title{Fully Dynamic 4-Cycle Counting via Fast Matrix Multiplication: An Exposition}
+%% TODO: shorten title before submission. See SECTIONS.md "Title (working)".
+
+\author{Author A}
+\affiliation{%
+  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \city{Ljubljana}
+  \country{Slovenia}}
+\email{a@example.si}
+
+\author{Author B}
+\affiliation{%
+  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \city{Ljubljana}
+  \country{Slovenia}}
+\email{b@example.si}
+
+\author{Author C}
+\affiliation{%
+  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \city{Ljubljana}
+  \country{Slovenia}}
+\email{c@example.si}
+
+\author{Author D}
+\affiliation{%
+  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \city{Ljubljana}
+  \country{Slovenia}}
+\email{d@example.si}
+
+\begin{abstract}
+%% Owner: A. ~150 words. Arc in SECTIONS.md "Abstract".
+%% Beats: (1) IVM-for-cyclic-joins framing, (2) state of the art (triangles tight,
+%% 4-cliques tight, 4-cycles long believed O(m^{2/3})), (3) Assadi--Shah's
+%% O(m^{2/3-eps}) result via FMM, (4) what this essay covers (reduction + simple
+%% algo + warm-up + 3 proofs), (5) experimental complement.
+\todo{write abstract}
+\end{abstract}
+
+%% CCS concepts. Pick the right codes from https://dl.acm.org/ccs
+\ccsdesc[500]{Theory of computation~Dynamic graph algorithms}
+\ccsdesc[300]{Theory of computation~Streaming, sublinear and near linear time algorithms}
+\ccsdesc[100]{Information systems~Database query processing}
+
+\keywords{fully dynamic algorithms, subgraph counting, 4-cycles,
+fast matrix multiplication, incremental view maintenance, cyclic joins}
+
+\maketitle
+
+%% =========================================================================
+\section{Introduction}
+\label{sec:intro}
+%% Owner: A. ~1.5 pages. SECTIONS.md "§1 Introduction".
+
+\subsection{Subgraph counting and dynamic graphs}
+\label{sec:intro:motivation}
+%% SECTIONS.md §1.1. Paper §1 p.1 par.1-2.
+%% Hook: subgraph counting is fundamental; cite [RPS+21,SMS+20,MSOI+02].
+%% Define fully dynamic model in one sentence; objective = worst-case update time.
+\todo{motivation paragraph}
+
+\subsection{The cyclic-join framing}
+\label{sec:intro:joins}
+%% SECTIONS.md §1.2. Paper §1 p.1 (database angle), p.2 (4-way cyclic join), Fig 1 p.7.
+%% Forward-reference Section 3. Insert Figure 1 here.
+\todo{cyclic-join paragraph; insert Figure 1}
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/fig1-layered}
+  \framebox[\columnwidth]{\rule{0pt}{6em}\textsc{Fig 1 placeholder}}
+  \caption{A 4-layered graph encoding a cyclic join $A \bowtie B \bowtie C \bowtie D$. One layered 4-cycle highlighted. Adapted from~\cite{AssadiShah25}, Fig.~1.}
+  \label{fig:layered}
+\end{figure}
+
+\subsection{The state of the art}
+\label{sec:intro:ladder}
+%% SECTIONS.md §1.3. Paper §1 p.2 (the ladder paragraphs).
+%% Triangles: O(sqrt(m)) tight [KNN+20,HKNS15].
+%% 4-cliques: O(m) tight [HHH22] (combinatorial conjecture).
+%% 4-cycles: prior O(m^{2/3}) [HHH22], lower Omega(m^{1/2}) [HKNS15].
+%% Insert Table 1 here.
+\todo{ladder discussion + Table 1}
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    Pattern & Upper bound & Lower bound \\
+    \midrule
+    3-cycle (triangle) & $O(\sqrt{m})$~\cite{KNN20} & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
+    4-cycle (this paper) & $O(m^{2/3-\varepsilon})$~\cite{AssadiShah25} & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
+    4-clique & $O(m)$ folklore & $\Omega(m^{1-\gamma})$~\cite{HHH22} \\
+    \bottomrule
+  \end{tabular}
+  \caption{State of the art for fully dynamic subgraph counting. Lower bounds are conditional (OMv for 3- and 4-cycles; combinatorial 4-clique conjecture for 4-cliques).}
+  \label{tab:ladder}
+\end{table}
+
+\subsection{The Assadi--Shah result}
+\label{sec:intro:result}
+%% SECTIONS.md §1.4. Paper Theorem 1 (p.2), the surprise commentary (p.2),
+%% IVM-with-FMM observation (p.3), worst-case-not-amortized note (p.3).
+%% Numbers: eps approx 0.0098 for omega=2.371339; eps=1/24 for omega=2.
+\todo{state Theorem 1 + the four-bullet surprise discussion}
+
+\subsection{What this essay does}
+\label{sec:intro:roadmap}
+%% SECTIONS.md §1.5. Roadmap of our slice. Out of scope: paper §6, §7.
+\todo{roadmap paragraph}
+
+%% =========================================================================
+\section{Preliminaries}
+\label{sec:prelim}
+%% Owner: B. ~1 page. SECTIONS.md "§2 Preliminaries". Paper §2.1 p.6, §2.2 p.7.
+
+\subsection{Graphs and subgraph notation}
+\label{sec:prelim:notation}
+%% SECTIONS.md §2.1. Paper §2.1 p.6.
+%% Define G=(V,E), n, m, deg(v), N(v), k-path, k-cycle, wedge, 4-layered graph,
+%% layered 4-cycle.
+\todo{notation block}
+
+\subsection{Dynamic graph model}
+\label{sec:prelim:dynamic}
+%% SECTIONS.md §2.2. Paper §1 p.1 "In the dynamic model..."; §1 p.3 worst-case note.
+\todo{define fully-dynamic update sequence; worst-case vs amortized}
+
+\subsection{Fast matrix multiplication}
+\label{sec:prelim:fmm}
+%% SECTIONS.md §2.3. Paper §2.1 p.6 "Fast Matrix Multiplication" subsection.
+%% Define omega and omega(a,b,c). Cite [ADW+25] for omega = 2.371339.
+%% Note "combinatorial" excludes Strassen-style.
+\todo{omega definitions}
+
+\subsection{The OMv conjecture}
+\label{sec:prelim:omv}
+%% SECTIONS.md §2.4. Paper §1 p.1, §1 p.2 "Existing Lower Bounds".
+%% State OMv informally; consequence is Omega(m^{1/2-gamma}) for triangle/4-cycle.
+%% Note OMv does not block FMM-based upper bounds.
+\todo{OMv paragraph}
+
+%% =========================================================================
+\section{The cyclic-join equivalence}
+\label{sec:reduction}
+%% Owner: B. ~1 page. SECTIONS.md "§3". Includes PROOF 1.
+
+\subsection{Joins as layered graphs}
+\label{sec:reduction:joins}
+%% SECTIONS.md §3.1. Paper §1 p.1-2 (database angle), §2.2 p.7, Fig 1 p.7.
+\todo{joins-as-layered-graphs paragraph; reuse Figure~\ref{fig:layered}}
+
+\subsection{Lifting a general graph to a 4-layered graph}
+\label{sec:reduction:lifting}
+%% SECTIONS.md §3.2. Paper §8 p.29-30 par.1-2.
+%% Construction: V x {1,2,3,4}; an edge (u,v) becomes 4 lifted edges.
+%% Update mapping: insertions go D, C, B, A; deletions reverse.
+\todo{describe lifting; insert Figure 2}
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/fig2-lifting}
+  \framebox[\columnwidth]{\rule{0pt}{6em}\textsc{Fig 2 placeholder}}
+  \caption{Lifting a general graph $G$ to a 4-layered graph $G'$: every vertex of $V$ is replicated in each of the four layers, and an edge $(u,v) \in E$ becomes four lifted edges between consecutive layers.}
+  \label{fig:lifting}
+\end{figure}
+
+\subsection{Equivalence theorem}
+\label{sec:reduction:theorem}
+%% SECTIONS.md §3.3. Paper Claim 8.1 + proof p.30. PROOF 1 of essay.
+
+\begin{theorem}[General--layered equivalence; \cite{AssadiShah25}, Claim 8.1]
+\label{thm:lifting}
+%% TODO: state precisely.
+For the lifted graph $G'$ defined above, the number of length-3 walks from $u \in L_1$ to $v \in L_4$ in $G'$ equals the number of length-3 paths from $u$ to $v$ in $G$.
+\end{theorem}
+
+\begin{proof}
+%% Two-paragraph argument from paper §8 p.30.
+%% Forward: any path in G lifts to a layered walk.
+%% Reverse: rule out coincident vertices using (i) no self-loops in lifted graph,
+%% (ii) edge (u,v) absent from A,B,C at query time by the insert/delete ordering.
+\todo{proof body}
+\end{proof}
+
+\subsection{Consequence}
+\label{sec:reduction:consequence}
+%% SECTIONS.md §3.4. Paper §1 p.3, §2.2 p.7.
+%% Therefore the rest of the essay can assume a 4-layered input.
+\todo{transition paragraph}
+
+%% =========================================================================
+\section{A simple $O(n)$ algorithm}
+\label{sec:simple}
+%% Owner: B. ~1.25 pages. SECTIONS.md "§4". Includes PROOF 2.
+
+\subsection{The wedge-counting idea}
+\label{sec:simple:idea}
+%% SECTIONS.md §4.1. Paper §1 p.3 "Our Techniques"; Appendix A p.35.
+%% Key identity: 4-cycles through new edge (u,v) = 3-paths from u to v
+%%             = sum over w in N(u) of W[w,v] (with corrections).
+\todo{wedge identity paragraph}
+
+\subsection{The algorithm}
+\label{sec:simple:algorithm}
+%% SECTIONS.md §4.2. Paper Appendix A p.35 (prose pseudocode).
+%% Subtlety: insertions query then update; deletions update then query.
+
+\begin{algorithm}[t]
+  \caption{Maintain 4-cycle count via wedge matrix $W$.}
+  \label{alg:simple}
+  \begin{algorithmic}[1]
+    \Procedure{Insert}{$u, v$}
+      \State $\Delta \gets \sum_{w \in N(u)} W[w, v]$    \Comment{query}
+      \State $C \gets C + \Delta$
+      \For{$w \in N(u)$} $W[w, v]\mathrel{+}= 1$; $W[v, w]\mathrel{+}= 1$ \EndFor
+      \For{$w \in N(v)$} $W[w, u]\mathrel{+}= 1$; $W[u, w]\mathrel{+}= 1$ \EndFor
+      \State add $(u,v)$ to $E$
+    \EndProcedure
+    \Procedure{Delete}{$u, v$}
+      \State remove $(u,v)$ from $E$
+      \For{$w \in N(u)$} $W[w, v]\mathrel{-}= 1$; $W[v, w]\mathrel{-}= 1$ \EndFor
+      \For{$w \in N(v)$} $W[w, u]\mathrel{-}= 1$; $W[u, w]\mathrel{-}= 1$ \EndFor
+      \State $\Delta \gets \sum_{w \in N(u)} W[w, v]$    \Comment{query}
+      \State $C \gets C - \Delta$
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+\todo{prose around Algorithm~\ref{alg:simple} explaining the order-of-operations subtlety}
+
+\subsection{Correctness and complexity}
+\label{sec:simple:proof}
+%% SECTIONS.md §4.3. Paper Lemma A.1 + Claims A.2, A.3 p.35. PROOF 2 of essay.
+
+\begin{lemma}[\cite{AssadiShah25}, Lemma A.1]
+\label{lem:simple}
+Algorithm~\ref{alg:simple} maintains the exact 4-cycle count of any fully dynamic graph in worst-case update time $O(n)$.
+\end{lemma}
+
+\begin{proof}
+%% Two parts. (1) Maintenance is O(n) by iterating N(u) cup N(v) at most 2n vertices.
+%% (2) Counting through the new edge: argue u, w, x, v are distinct using
+%%     no-self-loops + the order-of-operations rule (the new edge is absent from W
+%%     during the query).
+\todo{proof body}
+\end{proof}
+
+\subsection{Why $O(n)$ is not enough}
+\label{sec:simple:limitation}
+%% SECTIONS.md §4.4. Paper §1 p.3 "We now want to get the update time...".
+%% Tight for sparse graphs; loose for dense; memory n^2.
+%% Motivates HHH22 and Assadi-Shah.
+\todo{limitation paragraph}
+
+%% =========================================================================
+\section{The warm-up algorithm}
+\label{sec:warmup}
+%% Owner: C. ~3 pages. SECTIONS.md "§5". Includes PROOF 3.
+%% Paper §3 (entire), pages 7--12.
+
+\subsection{Setup and assumptions}
+\label{sec:warmup:setup}
+%% SECTIONS.md §5.1. Paper §3.1 p.7-8, Assumptions 1, 2, 3 on p.8, Lemma 3.1 p.8.
+\todo{state assumptions; goal $O(m^{2/3-\varepsilon_1})$}
+
+\subsection{Vertex degree classes}
+\label{sec:warmup:classes}
+%% SECTIONS.md §5.2. Paper §3.1 p.8 (H/M/L for L1,L4; S/D for L2,L3 per chunk).
+%% Notation A^{H*}, etc. paper p.8.
+\todo{define H/M/L on $L_1, L_4$ and S/D on $L_2, L_3$ per chunk}
+
+\subsection{Chunks and lazy maintenance}
+\label{sec:warmup:chunks}
+%% SECTIONS.md §5.3. Paper §3.1 p.8 (chunks), §3.2 p.9 (lazy), §3.3 p.11 (lazy eval),
+%% §3.3 p.12 (negative-edge subtlety).
+%% State Lemma 3.2 (worst-case time accounting).
+\todo{describe chunked maintenance and lazy evaluation}
+
+\subsection{Data structures}
+\label{sec:warmup:datastructures}
+%% SECTIONS.md §5.4. Paper Table 1 p.9 + Eqs (1)-(4) and Claims 3.3-3.7 p.9-11.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    Class & Stored products \\
+    \midrule
+    High in $L_1, L_4$    & $A^{H*}\!\cdot\!B_{<i}$;  $A^{H*}\!\cdot\!B_{<i}\!\cdot\!C^{*H}$;  $B_{<i}\!\cdot\!C^{*H}$ \\
+    Medium in $L_1, L_4$  & $A^{M*}\!\cdot\!B_{<i}$;  $B_{<i}\!\cdot\!C^{*M}$ \\
+    Low in $L_1, L_4$     & $A^{L*}\!\cdot\!B_{<i,DD}$, $A^{L*}\!\cdot\!B_{<i,SS}$, $A^{L*}\!\cdot\!B_{<i,SD}$, \\
+                          & and three symmetric products with $C^{*L}$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Data structures maintained by the warm-up algorithm. Adapted from~\cite{AssadiShah25}, Table~1.}
+  \label{tab:datastructures}
+\end{table}
+
+\todo{walk through the table; gloss the database-language interpretation}
+
+\begin{lemma}[\cite{AssadiShah25}, Lemma 3.2 -- statement only]
+\label{lem:warmup-update}
+The worst-case time to update all data structures in Table~\ref{tab:datastructures} is $O(m^{2/3-\varepsilon_1})$ per update, with $O(m^{4/3-2\varepsilon_1})$ amortized over chunk transitions.
+\end{lemma}
+
+\subsection{Worked example: the FMM step}
+\label{sec:warmup:fmm}
+%% SECTIONS.md §5.5. Paper Claim 3.6 p.10 + Eq (5).
+%% Numeric solution paper §3.4 p.12 (eps_1 = 0.04201965, eps_2 = 0.14568075).
+%% Verified in Appendix B p.36-37.
+
+\begin{theorem}[\cite{AssadiShah25}, Claim 3.6]
+\label{thm:fmm-step}
+%% TODO: state precisely.
+The matrix product $A^{L*}\!\cdot\!B_{i,DD}$ can be computed in time
+$m^{\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}}$.
+\end{theorem}
+
+\begin{proof}
+%% Dimension analysis: A^{L*} is m^{2/3+2eps} x m^{1/3-eps_1+eps_2};
+%% B_{i,DD} is m^{1/3-eps_1+eps_2} x m^{1/3-eps_1+eps_2}; rectangular FMM.
+\todo{dimension count + invocation of rectangular FMM}
+\end{proof}
+
+\todo{discussion: this constraint (paper Eq~(5)) is what \emph{forces} $\varepsilon_1>0$, with the system feasible at the numeric values stated in paper §3.4.}
+
+\subsection{Pulling it together}
+\label{sec:warmup:queries}
+%% SECTIONS.md §5.6. Paper §3.3 Queries p.11-12, Lemma 3.8.
+%% Forward-reference §6.
+\todo{summarize the query case analysis (HH, HM/ML/HL/MM, LL); cite Lemma 3.8}
+
+%% =========================================================================
+\section{The phases idea}
+\label{sec:phases}
+%% Owner: C. ~0.75 page. SECTIONS.md "§6". No new proofs -- conceptual only.
+%% Paper §5.1 p.15.
+
+\subsection{What breaks when $A, C$ are not fixed}
+\label{sec:phases:breaks}
+%% SECTIONS.md §6.1. Paper §5 p.14 "High Level Idea".
+\todo{aggregation breaks once $A$ updates}
+
+\subsection{Phases vs chunks}
+\label{sec:phases:phases}
+%% SECTIONS.md §6.2. Paper §5.1 p.15; Eq (9) p.13.
+%% Phase = m^{1-delta} updates; FMM is computed for the previous (frozen) phase.
+\todo{phase definition + Eq~(9)}
+
+\subsection{Why $\omega < 2.5$ is required}
+\label{sec:phases:omega}
+%% SECTIONS.md §6.3. Paper §5.1 p.15; §1 p.2.
+%% Strassen (omega ~ 2.81) is insufficient; surprise.
+\todo{the surprise paragraph}
+
+\subsection{Eight path types}
+\label{sec:phases:paths}
+%% SECTIONS.md §6.4. Paper §5.2 p.15-17, Table 2, Eq (15).
+\todo{one-paragraph description; do not reproduce Table 2}
+
+\subsection{Theorem 1 (paper)}
+\label{sec:phases:theorem}
+%% SECTIONS.md §6.5. Paper §1 p.2 (Theorem 1), §8 p.29 (restatement).
+
+\begin{theorem}[\cite{AssadiShah25}, Theorem 1 -- restated]
+\label{thm:main-paper}
+There is an algorithm for counting 4-cycles in any fully dynamic graph in worst-case update time $O(m^{2/3-\varepsilon})$, where $\varepsilon > 0$ is a constant depending on $\omega$. With current $\omega = 2.371339$, $\varepsilon \approx 0.0098$; with $\omega = 2$, $\varepsilon = 1/24$.
+\end{theorem}
+
+\todo{one-line note that the full proof combines §3 warm-up, phases, and the de-assumption arguments in paper §6, §7 -- which we do not reproduce}
+
+%% =========================================================================
+\section{Experiments}
+\label{sec:experiments}
+%% Owner: D. ~1.5 pages. SECTIONS.md "§7". Code in ../code/.
+%% No paper map -- this section is our contribution.
+
+\subsection{Setup}
+\label{sec:experiments:setup}
+%% SECTIONS.md §7.1. Algorithm: Lemma A.1. Languages: Python+numpy (Go fallback).
+\todo{implementation details, hardware, datasets (synthetic ER, BA; one SNAP graph)}
+
+\subsection{Methodology}
+\label{sec:experiments:methodology}
+%% SECTIONS.md §7.2. Median over 1000 updates; verify against recompute on small graphs.
+\todo{methodology paragraph}
+
+\subsection{Results}
+\label{sec:experiments:results}
+%% SECTIONS.md §7.3. Two figures + one table.
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/fig3-update-time}
+  \framebox[\columnwidth]{\rule{0pt}{8em}\textsc{Fig 3 placeholder}}
+  \caption{Median per-update time vs.\ $n$ (log--log) for Simple-Wedge and Naive-Recompute at three densities.}
+  \label{fig:update-time}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/fig4-crossover}
+  \framebox[\columnwidth]{\rule{0pt}{8em}\textsc{Fig 4 placeholder}}
+  \caption{Cumulative time vs.\ number of updates: crossover where dynamic maintenance overtakes recomputation.}
+  \label{fig:crossover}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    Dataset & $n$ & $m$ & Simple-Wedge $\bar{t}$ & Recompute $\bar{t}$ \\
+    \midrule
+    \texttt{ca-GrQc} & TBD & TBD & TBD & TBD \\
+    \texttt{email-Enron} & TBD & TBD & TBD & TBD \\
+    \bottomrule
+  \end{tabular}
+  \caption{Real-world graph experiments. $\bar{t}$ in milliseconds, median over 1000 updates.}
+  \label{tab:real-world}
+\end{table}
+
+\todo{discussion of patterns: dense vs sparse, crossover position}
+
+\subsection{Connection to the theoretical bounds}
+\label{sec:experiments:theory}
+%% SECTIONS.md §7.4. Caveat: we don't implement warm-up §5; only Simple-Wedge.
+\todo{honest caveat + observations connecting back to Section~\ref{sec:simple}}
+
+%% =========================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%% Owner: A. ~0.5 page. SECTIONS.md "§8".
+
+\subsection{What we did}
+\label{sec:conclusion:summary}
+%% SECTIONS.md §8.1. Synthesis.
+\todo{one-paragraph recap}
+
+\subsection{Open questions}
+\label{sec:conclusion:open}
+%% SECTIONS.md §8.2. Paper §1 p.2 (the gap discussion); §1 p.3 (IVM-with-FMM as a direction).
+%% Three threads: closing the m^{1/2} -- m^{2/3} gap; FMM in other IVM problems;
+%% practical FMM constants.
+\todo{open questions paragraph}
+
+%% ---------------------------------------------------------------
+%% References
+%% ---------------------------------------------------------------
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\end{document}
