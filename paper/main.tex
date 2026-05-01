@@ -2,11 +2,11 @@
 %% Source-of-truth for content and paper-mappings: ../SECTIONS.md
 %% Build:  pdflatex main && bibtex main && pdflatex main && pdflatex main
 %%
-%% For EasyChair anonymous submission, swap the documentclass line for
-%%   \documentclass[sigconf,anonymous,review,nonacm]{acmart}
-%% Before final submission, decide on \nonacm vs the rights-management commands.
+%% Default class is set up for ANONYMOUS EasyChair submission.
+%% For a non-anon "show authors" build, switch to:
+%%   \documentclass[sigconf,nonacm]{acmart}
 
-\documentclass[sigconf,nonacm]{acmart}
+\documentclass[sigconf,anonymous,review,nonacm]{acmart}
 
 %% ---------------------------------------------------------------
 %% Packages
@@ -30,17 +30,16 @@
 
 %% Convenience macros
 \newcommand{\Otil}{\widetilde{O}}
-\newcommand{\fmm}{\omega}
 \newcommand{\rfmm}[3]{\omega(#1,#2,#3)}
-\newcommand{\fourcyc}{4\text{-cycle}}
 
 \begin{document}
 
 %% ---------------------------------------------------------------
 %% Front matter
 %% ---------------------------------------------------------------
-\title{Fully Dynamic 4-Cycle Counting via Fast Matrix Multiplication: An Exposition}
-%% TODO: shorten title before submission. See SECTIONS.md "Title (working)".
+\title{Counting 4-Cycles in Fully Dynamic Graphs: A Cyclic-Join Perspective}
+%% TODO: settle title before submission. The previous "An Exposition" framing
+%% read as a paper-report; the assignment requires a topic essay (see F4).
 
 \author{Author A}
 \affiliation{%
@@ -131,13 +130,14 @@ fast matrix multiplication, incremental view maintenance, cyclic joins}
     Pattern & Upper bound & Lower bound \\
     \midrule
     3-cycle (triangle) & $O(\sqrt{m})$~\cite{KNN20} & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
-    4-cycle (this paper) & $O(m^{2/3-\varepsilon})$~\cite{AssadiShah25} & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
+    4-cycle & $O(m^{2/3-\varepsilon})$~\cite{AssadiShah25}\footnotemark[1] & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
     4-clique & $O(m)$ folklore & $\Omega(m^{1-\gamma})$~\cite{HHH22} \\
     \bottomrule
   \end{tabular}
   \caption{State of the art for fully dynamic subgraph counting. Lower bounds are conditional (OMv for 3- and 4-cycles; combinatorial 4-clique conjecture for 4-cliques).}
   \label{tab:ladder}
 \end{table}
+\footnotetext[1]{$\varepsilon > 0$ is a constant depending on the matrix-multiplication exponent $\omega$; see Theorem~\ref{thm:main-paper}.}
 
 \subsection{The Assadi--Shah result}
 \label{sec:intro:result}
@@ -211,17 +211,19 @@ fast matrix multiplication, incremental view maintenance, cyclic joins}
 \label{sec:reduction:theorem}
 %% SECTIONS.md §3.3. Paper Claim 8.1 + proof p.30. PROOF 1 of essay.
 
-\begin{theorem}[General--layered equivalence; \cite{AssadiShah25}, Claim 8.1]
+\begin{theorem}[General--layered equivalence]
 \label{thm:lifting}
-%% TODO: state precisely.
-For the lifted graph $G'$ defined above, the number of length-3 walks from $u \in L_1$ to $v \in L_4$ in $G'$ equals the number of length-3 paths from $u$ to $v$ in $G$.
+%% Statement is ours; proof follows the argument of \cite{AssadiShah25}.
+%% F1: LHS must be "walks", not "paths" -- saying "paths = paths" is vacuous.
+For the lifted graph $G'$ defined above and operated under the update protocol of Section~\ref{sec:reduction:lifting}, the number of length-3 \emph{walks} from $u \in L_1$ to $v \in L_4$ in $G'$ equals the number of length-3 paths from $u$ to $v$ in $G$.
 \end{theorem}
 
 \begin{proof}
-%% Two-paragraph argument from paper §8 p.30.
+%% F3: emphasize the load-bearing update protocol.
 %% Forward: any path in G lifts to a layered walk.
 %% Reverse: rule out coincident vertices using (i) no self-loops in lifted graph,
-%% (ii) edge (u,v) absent from A,B,C at query time by the insert/delete ordering.
+%% (ii) edge (u,v) absent from A,B,C at query time by the D-first/A-last protocol.
+%% Cite \cite{AssadiShah25} for the original argument.
 \todo{proof body}
 \end{proof}
 
@@ -275,8 +277,10 @@ For the lifted graph $G'$ defined above, the number of length-3 walks from $u \i
 \label{sec:simple:proof}
 %% SECTIONS.md §4.3. Paper Lemma A.1 + Claims A.2, A.3 p.35. PROOF 2 of essay.
 
-\begin{lemma}[\cite{AssadiShah25}, Lemma A.1]
+\begin{lemma}[Correctness and complexity of Algorithm~\ref{alg:simple}]
 \label{lem:simple}
+%% Originally \cite{AssadiShah25} Lemma A.1; restated as our own with attribution
+%% in the proof to avoid the paper-report framing (F4).
 Algorithm~\ref{alg:simple} maintains the exact 4-cycle count of any fully dynamic graph in worst-case update time $O(n)$.
 \end{lemma}
 
@@ -341,8 +345,9 @@ Algorithm~\ref{alg:simple} maintains the exact 4-cycle count of any fully dynami
 
 \todo{walk through the table; gloss the database-language interpretation}
 
-\begin{lemma}[\cite{AssadiShah25}, Lemma 3.2 -- statement only]
+\begin{lemma}[Update-time accounting for Table~\ref{tab:datastructures}; \cite{AssadiShah25}]
 \label{lem:warmup-update}
+%% Statement only; full proof in \cite{AssadiShah25} Lemma 3.2 + Claims 3.3--3.7.
 The worst-case time to update all data structures in Table~\ref{tab:datastructures} is $O(m^{2/3-\varepsilon_1})$ per update, with $O(m^{4/3-2\varepsilon_1})$ amortized over chunk transitions.
 \end{lemma}
 
@@ -352,9 +357,9 @@ The worst-case time to update all data structures in Table~\ref{tab:datastructur
 %% Numeric solution paper §3.4 p.12 (eps_1 = 0.04201965, eps_2 = 0.14568075).
 %% Verified in Appendix B p.36-37.
 
-\begin{theorem}[\cite{AssadiShah25}, Claim 3.6]
+\begin{theorem}[Cost of the rectangular FMM step]
 \label{thm:fmm-step}
-%% TODO: state precisely.
+%% Originally \cite{AssadiShah25} Claim 3.6.
 The matrix product $A^{L*}\!\cdot\!B_{i,DD}$ can be computed in time
 $m^{\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}}$.
 \end{theorem}
@@ -374,43 +379,30 @@ $m^{\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\
 \todo{summarize the query case analysis (HH, HM/ML/HL/MM, LL); cite Lemma 3.8}
 
 %% =========================================================================
-\section{The phases idea}
-\label{sec:phases}
-%% Owner: C. ~0.75 page. SECTIONS.md "§6". No new proofs -- conceptual only.
-%% Paper §5.1 p.15.
+%% F7+F8: The standalone "phases" section was cut to free ~0.75 page of budget.
+%% A condensed version of its content (the surprise about omega < 2.5 - O(eps),
+%% a one-paragraph sketch of phases, and the restatement of Theorem 1 of the
+%% paper) is folded below as a single subsection at the end of the warm-up.
+%% Move the discussion of phase machinery to Section~\ref{sec:conclusion} if
+%% you reclaim space later.
 
-\subsection{What breaks when $A, C$ are not fixed}
-\label{sec:phases:breaks}
-%% SECTIONS.md §6.1. Paper §5 p.14 "High Level Idea".
-\todo{aggregation breaks once $A$ updates}
+\subsection{From warm-up to the full theorem (sketch)}
+\label{sec:warmup:phases}
+%% Replaces the old standalone Section 6 (~0.75 page). SECTIONS.md §6.1--§6.5.
+%% Paper §5 p.14, §5.1 p.15, §1 p.2.
+%% F13: write "omega < 2.5 - O(eps)", not just "omega < 2.5".
+%% F14: be explicit -- we do NOT prove this theorem; it is the source paper's.
+\todo{one paragraph: aggregation breaks once $A$ updates; the paper introduces phases of size $m^{1-\delta}$ that allow FMM precomputation on the (now-frozen) previous phase. Constraint Eq~(9) of \cite{AssadiShah25} forces $\omega < 5/2 - O(\varepsilon)$, which is why Strassen ($\omega \approx 2.81$) is not sufficient. State the headline result we do \emph{not} re-prove:}
 
-\subsection{Phases vs chunks}
-\label{sec:phases:phases}
-%% SECTIONS.md §6.2. Paper §5.1 p.15; Eq (9) p.13.
-%% Phase = m^{1-delta} updates; FMM is computed for the previous (frozen) phase.
-\todo{phase definition + Eq~(9)}
-
-\subsection{Why $\omega < 2.5$ is required}
-\label{sec:phases:omega}
-%% SECTIONS.md §6.3. Paper §5.1 p.15; §1 p.2.
-%% Strassen (omega ~ 2.81) is insufficient; surprise.
-\todo{the surprise paragraph}
-
-\subsection{Eight path types}
-\label{sec:phases:paths}
-%% SECTIONS.md §6.4. Paper §5.2 p.15-17, Table 2, Eq (15).
-\todo{one-paragraph description; do not reproduce Table 2}
-
-\subsection{Theorem 1 (paper)}
-\label{sec:phases:theorem}
-%% SECTIONS.md §6.5. Paper §1 p.2 (Theorem 1), §8 p.29 (restatement).
-
-\begin{theorem}[\cite{AssadiShah25}, Theorem 1 -- restated]
+\begin{theorem}[Main result of \cite{AssadiShah25}, restated]
 \label{thm:main-paper}
-There is an algorithm for counting 4-cycles in any fully dynamic graph in worst-case update time $O(m^{2/3-\varepsilon})$, where $\varepsilon > 0$ is a constant depending on $\omega$. With current $\omega = 2.371339$, $\varepsilon \approx 0.0098$; with $\omega = 2$, $\varepsilon = 1/24$.
+There is an algorithm for counting 4-cycles in any fully dynamic graph in worst-case update time $O(m^{2/3-\varepsilon})$ for some constant $\varepsilon > 0$. With current $\omega = 2.371339$, $\varepsilon \approx 0.0098$; with $\omega = 2$, $\varepsilon = 1/24$.
 \end{theorem}
 
-\todo{one-line note that the full proof combines §3 warm-up, phases, and the de-assumption arguments in paper §6, §7 -- which we do not reproduce}
+%% F14: the phrasing below makes it explicit that this essay's formal contribution
+%% is Theorems~\ref{thm:lifting} and~\ref{thm:fmm-step} and Lemma~\ref{lem:simple}
+%% only -- the full assembly (paper Sections 4--7) is referenced, not reproved.
+\todo{closing note: ``We restate Theorem~\ref{thm:main-paper} verbatim from \cite{AssadiShah25}; its proof requires combining the warm-up of Section~\ref{sec:warmup}, the phases machinery sketched above, and removal of the simplifying assumptions (paper Sections 6--7), which is beyond our scope.''}
 
 %% =========================================================================
 \section{Experiments}

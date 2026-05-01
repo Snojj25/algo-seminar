@@ -196,3 +196,29 @@ Individual. Each member reviews whatever EasyChair assigns them.
 ## 9. Immediate next step
 
 **Round 1 triage** of the 30 abstracts in the proceedings — produce a one-page sortable list (title, authors, ~3-line summary, suitability note for an algorithms seminar with a required formal proof). This is the artifact the group needs to start the first meeting from.
+
+---
+
+## 10. Conference report tracker (F5)
+
+The conference-report deliverable is *separate* from the essay and is currently underspecified. Fill in below.
+
+| Slot | Paper (PODS 2025 article #) | Champion | Draft status |
+|---|---|---|---|
+| Summary 1 | TBD | TBD | not started |
+| Summary 2 | TBD | TBD | not started |
+| Summary 3 | TBD | TBD | not started |
+| Conference metadata page (topics, dates, stats) | — | TBD (likely D or A) | not started |
+
+Picking criteria (from §3): different subtopic areas for variety; ≤500 words each in own words; champions can read just abstract + intro + conclusion.
+
+## 11. Presentation tracker (F18)
+
+The 15-minute essay presentation at end-of-semester conference — currently has no plan.
+
+- Slide template: official UL FRI CGP
+- Owner / driver: TBD (recommended: A — Lead)
+- Slide-count target: ~12 slides for 15 min (rough rule: 1 minute per slide, plus buffer)
+- Goal: convince audience to *read* the paper — pitch the result, not the proofs
+- Dry-run date: TBD (target ≥ 1 week before talk slot)
+- Open question: is the conference-summary presentation a separate earlier seminar? (See §2.3 above.)

@@ -21,9 +21,9 @@ Plan for our 10-page ACM sigconf essay based on Assadi & Shah, *An Improved Full
 - **The general → layered reduction** (paper §8): replicate V across 4 layers, run on layered graph; Claim 8.1 (3-walks = 3-paths) is provable in two paragraphs.
 - **The simple O(n) algorithm** (paper Appendix A): maintain wedge counts; the pedagogical entry point and the thing we'll implement.
 - **The warm-up O(m^{2/3−ε₁}) algorithm** (paper §3): vertex classes H/M/L and S/D, chunks, the data-structure table, rectangular FMM step.
-- **Why FMM is critical and why the result is conceptually surprising**: any ω < 3 is *not* sufficient; we need ω < 2.5 (paper §5.1, Eq 9). 4-cliques have a combinatorial Ω(m) lower bound that *blocks* FMM speedups; 4-cycles only have Ω(m^{1/2}) which doesn't.
+- **Why FMM is critical and why the result is conceptually surprising**: any ω < 3 is *not* sufficient; we need ω < 2.5 − O(ε) (paper §5.1, Eq 9), which in particular requires ω < 2.5. 4-cliques have a combinatorial Ω(m) lower bound that *blocks* FMM speedups; 4-cycles only have Ω(m^{1/2}) which doesn't.
 - **The OMv conjecture** as the source of the lower bound. Paragraph-level treatment.
-- **The constraint system** (paper §3.4 Eqs 2, 5–8) and how solving it produces ε₁ > 0. Re-derive cleanly.
+- **The constraint system** (paper §3.4 Eqs 2, 5–8): state the system, verify feasibility *by hand at ω = 2* (where it reduces to checkable rationals — paper Appendix B p. 37). Cite [Bra]/[ADW+25] for the current-ω numerical case rather than reproducing it. (F11)
 - **The implementation and its experimental story** (see §5 below).
 
 ### Out of scope (we mention or skip)
@@ -67,20 +67,24 @@ Bonus material if space allows: re-derive that the constraint system (Eqs 2, 5�
 
 ### 5.1 What we implement
 
-**Algorithm 1 — Naive recompute**: on every edge update, count 4-cycles from scratch. Use the standard Alon–Yuster–Zwick approach (count wedges, sum-of-wedge-pairs gives 4-cycles up to symmetry corrections), or even brute force for small graphs. O(m·n) per update or worse. Baseline.
+**Algorithm 1 — Naive recompute (wedge-sum)**: on every edge update, recompute the 4-cycle count from scratch via the identity
+`#4-cycles = (1/2) · Σ_v binomial(W(v), 2)`,
+where `W(v)` is the number of wedges centred at `v`. Each recompute is O(n + m) to assemble W (one pass over the adjacency lists) plus O(n) to sum the binomials, giving O(n + m) per update. **Single fixed baseline; no algorithm switching across graph sizes** (F10). Brute force is used only as a tiny-graph (n ≤ 50) correctness oracle, never as the reported baseline.
 
 **Algorithm 2 — Simple O(n)** (paper Appendix A): maintain a wedge-count matrix W[u,v] = #wedges between u and v. On edge update (u, v):
-- Compute Δ(#4-cycles) = Σ_{w ∈ N(u)} W[w, v] − W[v, v]·[wedge correction] (signs flip for deletions).
+- Compute Δ(#4-cycles) = Σ_{w ∈ N(u)} W[w, v] (no correction term — paper Claim A.3 establishes correctness via the update-order rule below).
 - Update W: for each w ∈ N(u), W[w, v] ± 1; symmetrically for N(v).
+- **Update-order rule**: insert ⇒ query first, then update W. Delete ⇒ update W first, then query. This keeps (u,v) absent from W during the query.
 - Both steps are O(n).
 
 This is the algorithm whose correctness/complexity we prove formally in §4 of the essay.
 
 ### 5.2 Datasets
 
-- **Synthetic Erdős–Rényi G(n, p)**: vary n ∈ {100, 500, 1000, 2000, 5000} and p so that m ≈ n^{1.5}, n^{1.7}, n² (sparse, medium, dense). Generate an update stream of insertions + deletions in a 50/50 mix.
-- **Synthetic preferential attachment** (Barabási–Albert): scale-free, has interesting wedge distribution; 1–2 sizes.
-- **One real-world graph**: e.g., a SNAP dataset like `email-Enron` (~36k vertices, ~180k edges) or `as-Skitter`. Process its edges as a stream.
+- **Synthetic Erdős–Rényi G(n, p)**: vary n ∈ {100, 500, 1000, 2000} for *both* algorithms (so timings are comparable), with three densities (m ≈ n^{1.3}, n^{1.5}, n^{1.7}). For Simple-Wedge only, also run n = 5000 to show its scaling.
+- **Synthetic Barabási–Albert** (preferential attachment): one or two sizes for shape comparison.
+- **Real-world graph** (Simple-Wedge only): one *small* SNAP graph such as `ca-GrQc` (n ≈ 5k, m ≈ 14k). Larger graphs like `email-Enron` (n ≈ 36k) are infeasible: the dense wedge matrix is ~5 GB at that scale (F9). Note this honestly in §7.1 of the essay.
+- Update streams: random insertion-only, mixed 50/50 insert/delete (after a build-up phase).
 
 ### 5.3 What we measure
 

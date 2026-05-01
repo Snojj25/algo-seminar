@@ -10,14 +10,15 @@ Source paper: Assadi & Shah, *An Improved Fully Dynamic Algorithm for Counting 4
 
 ## Work distribution (by section)
 
+Updated after F7/F8: dropped standalone §6, folded its content into §5.7. Re-budgeted to ~9 body pages + 1 page references.
+
 | Section | Owner | Page target | Why this owner |
 |---|---|---|---|
-| §1 Introduction | A — Lead | ~1.5 | Sets the framing and our angle; integrates with §8 |
-| §2 Preliminaries | B — Background | ~1 | Pure exposition of definitions and tools |
+| §1 Introduction | A — Lead | ~1.25 | Sets the framing and our angle; integrates with §8 |
+| §2 Preliminaries | B — Background | ~0.75 | Pure exposition of definitions and tools |
 | §3 Cyclic-join equivalence | B — Background | ~1 | Database-theory framing + Proof 1 |
 | §4 Simple O(n) algorithm | B — Background | ~1.25 | Pedagogical, accessible; Proof 2; bridges to harder material |
-| §5 Warm-up algorithm | C — Theory | ~3 | Technical core; Proof 3; the FMM step |
-| §6 Phases sketch | C — Theory | ~0.75 | Continues the theoretical thread from §5 |
+| §5 Warm-up algorithm (incl. §5.7 phases sketch) | C — Theory | ~3 | Technical core; Proof 3; the FMM step + phases sketch |
 | §7 Experiments | D — Contribution | ~1.5 | Owns implementation in `code/` and figures |
 | §8 Conclusion | A — Lead | ~0.5 | Symmetric with §1; pulls together threads |
 
@@ -221,13 +222,18 @@ Present as a small table.
 
 - Given general graph G = (V, E), construct G' = (V', E') with V' = V × {1,2,3,4}, copies of V in each layer.
 - An edge (u, v) ∈ E becomes 4 edges in G' between consecutive layers (and L₄ ↔ L₁ closure).
-- *Update mapping:* an `insert(u,v)` in G becomes 4 inserts in G' in the order D, then C, B, A. Deletions reverse: A, B, C, D first, D last. Order matters for query correctness (see proof).
+- *Update protocol* (load-bearing for the proof — F3):
+  - **Insert**: insert into D first, then C, then B, then A.
+  - **Delete**: remove from A first, then B, C; D is removed last.
+  - **Query**: the count of new 4-cycles in G is read off after the D update only — i.e. between the D operation and the next of A/B/C. This guarantees that during a query, the edge (u,v) is present in D but absent from A, B, C.
 
 ### §3.3 Theorem (Claim 8.1) and proof
 
 **Paper map**: §8, p. 30. Statement and proof of Claim 8.1: "The number of walks of length 3 from u ∈ L₁ to v ∈ L₄ in the layered graph is equal to the number of paths of length 3 from u to v in the general graph." Proof spans p. 30 ("All 3-paths in the general graph from u to v exist in the constructed layered graph..." through "Thus, all the vertices are distinct and u, x, y, v is a path."). The wrap-up "Claim 8.1 along with Theorem 2 proves Theorem 1" is also on p. 30.
 
-> **Theorem 1 (essay).** *In the construction above, the number of layered 3-paths from u ∈ L₁ to v ∈ L₄ in G' equals the number of length-3 paths from u to v in the original graph G.*
+> **Theorem 1 (essay).** *In the construction above, the number of length-3 **walks** from u ∈ L₁ to v ∈ L₄ in G' equals the number of length-3 paths from u to v in the original graph G.*
+
+(Note: LHS is *walks*, not paths. The point of the theorem is that under the update protocol below, walks coincide with paths. Saying "paths = paths" makes the claim vacuous. — F1.)
 
 **Proof.** Two-paragraph argument from paper §8:
 - Forward direction is immediate: any path u, x, y, v in G lifts to a layered walk in G'.
@@ -264,8 +270,9 @@ This is **Proof 1** of the essay.
 - Algorithm itself: Appendix A, p. 35 ("In this section, we give a very simple algorithm to maintain the total number of 4-cycles in a fully dynamic general graph with worst-case update time O(n) where n is the number of vertices in the graph.").
 
 - Number of 4-cycles through new edge (u,v) = number of 3-paths from u to v.
-- Number of 3-paths from u to v = Σ_{w ∈ N(u)} (#wedges between w and v) − (correction for self).
-- So if we keep a wedge-count matrix W[w, v] = #wedges between w and v, queries are easy.
+- Number of 3-paths from u to v = Σ_{w ∈ N(u)} W[w, v], where W[w, v] = #wedges between w and v.
+- The sum gives 3-*walks*; under the update-order protocol below, every counted walk is a path (no correction term needed — F2).
+- So we maintain a wedge-count matrix W and queries are an inner-product over N(u).
 
 ### §4.2 The algorithm (Algorithm 1)
 
@@ -438,72 +445,20 @@ This is **Proof 3** of the essay.
 - Why ε₁ ≥ ε is needed: §3.4, p. 12, "We need this because we use this algorithm as a subroutine in our main algorithm which has update time O(m^{2/3−ε})."
 
 - State the warm-up theorem informally: the data structures maintain enough information to answer (u, v) queries in O(m^{2/3−ε₁}), via case analysis on whether u and v are H, M, or L. The eight resulting cases are listed in paper §3.3 — we summarize but don't reproduce.
-- Forward-reference: §6 explains how the paper drops the "A, C fixed" assumption.
+- Transition into §5.7 (the phases sketch — replaces former standalone §6, F8).
 
-**Citations used in §5**: paper §3 (primarily), [ADW+25] for FMM bounds, [HHH22] for prior approach contrast, [AYZ97] for the static FMM-cycle-counting precedent.
+### §5.7 From warm-up to the full theorem (sketch, ~⅓ page)
 
----
+**Paper map**: paper §5 "High Level Idea" p. 14; §5.1 Phases p. 15; §1 p. 2 (the surprise); §1 p. 2 (Theorem 1 statement); §8 p. 29 (restatement). Eq (9) on p. 13.
 
-## §6 The phases idea (~0.75 page, owner C)
+This subsection replaces the previously planned standalone §6 (F8 — page-budget cut). One paragraph covering:
 
-**Goal**: explain how the warm-up's "A, C fixed" assumption is removed, and why FMM with ω < 2.5 is critical. No new proofs.
+- *Why the warm-up is not enough*: aggregation A^{L*}·B<ᵢ,DD = A^{L*}·B<ᵢ−1,DD + A^{L*}·Bᵢ,DD requires A fixed; breaks once A receives updates.
+- *Phases*: paper introduces phases of size m^{1−δ}; during phase j+1, FMM products are precomputed for the now-frozen phase j. Eq (9): 1 − δ ≥ (2ω + 1)·ε + (ω − 1)·2/3.
+- *Why ω < 2.5 − O(ε) is required* (F13 — note the "− O(ε)" slack, not bare "ω < 2.5"). Strassen (ω ≈ 2.81) is insufficient. This is the conceptual surprise.
+- *Restate Theorem 1 of the paper* — but explicitly say that the full proof (paper §5 phases + paper §6 tiny vertices + paper §7 class transitions + paper §8 reduction) is beyond scope; our formal contribution is the three proofs in §3, §4, §5.5 (F14).
 
-### §6.1 What breaks when A, C are not fixed
-
-**Paper map**: §5 "High Level Idea", p. 14, paragraph "We would like to do something similar to the previous algorithm (Section 3) but here A and C are not fixed so there is a problem with aggregation of data structures over different chunks when using the previous approach. For instance, consider the data structure A^{L*}·B<ᵢ,DD we maintained in Section 3..." through "Doing this is not possible if the matrix A is undergoing changes."
-
-- The warm-up maintained, e.g., A^{L*}·B<ᵢ,DD by adding A^{L*}·Bⱼ,DD for j < i.
-- Aggregation: A^{L*}·B<ᵢ,DD = A^{L*}·B<ᵢ−1,DD + A^{L*}·Bᵢ,DD.
-- This only works if A is *fixed*. Once A receives updates, the running sum is invalid.
-
-### §6.2 Phases vs chunks
-
-**Paper map**:
-- Phase definition: §5.1 Phases, p. 15, "We define a **phase** as m^{1−δ} edge updates. A phase should be long enough so that in the time it takes to process all the edge updates in a phase, we are able to multiply two square matrices of dimension m^{2/3+2ε}."
-- Eq (9) (the constraint that forces phase size): §4, p. 13, "1 − δ ≥ (2ω + 1) · ε + (ω − 1)·2/3."
-- Phase vs chunk distinction: §5.1, p. 15, "A phase feels similar to a chunk (introduced in Section 3.1), but they have slightly different purposes apart from having different sizes..."
-- Eight path types based on old/new edge classification: §5.1, p. 15, "We divide all the phases into two parts. The phase which contains the current phase Pⱼ₊₁ and the phase just before it Pⱼ. All phases older than that are represented by P_old. The edges in A that are part of P_old are represented by A_old and those that are part of P_new are represented by A_new (similar for B, C)."
-
-- *Phase*: a window of m^{1−δ} edge updates (δ > 0).
-- During a phase, compute matrix products for the *previous* phase using FMM. The previous phase's edges are fixed (no more updates to them), so the matrices are static during this computation.
-- This requires the phase to be long enough that the FMM cost amortizes — Eq (9) of paper:
-
-1 − δ ≥ (2ω + 1)·ε + (ω − 1)·2/3.
-
-### §6.3 Why ω < 2.5 is required (the surprising part)
-
-**Paper map**:
-- Direct statement: §5.1, p. 15, "A noteworthy observation is that we require δ > 0, which happens only when ω < 2.5 − O(ε) (Eq (9)) which in particular happens only when ω < 2.5. As we mention in the introduction, this is very surprising because any upper bound on ω better than 3 is not sufficient."
-- Same point in introduction: §1, p. 2, "This approach crucially relies on fast matrix multiplication, and we only get an improvement when ω < 2.5. This is very surprising because any upper bound on ω better than 3 like Strassen's algorithm is not sufficient. For ω = 2.371339 the update time improves from m^{0.66} to m^{0.65686} and if ω = 2 it further improves to m^{0.625}."
-- Also see comparison with similar small improvements in §1, p. 2 (citing [KKG21] for metric TSP, [AB21] for streaming matching, [ADW+25] for FMM itself).
-
-- For δ > 0 to admit a positive solution with ε > 0, we need ω < 2.5 − O(ε).
-- Strassen's algorithm gives ω ≈ 2.81 — *insufficient*.
-- The improvement requires *post-Strassen* FMM, which only exists since Coppersmith–Winograd (1990) and refinements.
-- This is the "key surprise": the result depends on FMM techniques substantially beyond Strassen.
-
-### §6.4 The eight path types (one paragraph)
-
-**Paper map**:
-- Eight types of paths based on phase classification: §1, p. 4, "For most types of these 3-paths, we are able to store the number of 3-paths through two sparse vertices like the data structure for the number of 3-paths through two low degree vertices in [HHH22]." and the surrounding discussion (paper §1, p. 4–5, discussing the "first difficult case" and "another difficult case").
-- Table 2 (data structures for the main algorithm): §5.2, p. 15.
-- Eq (15) (six additional data structures for high-degree vertices): §5.2, p. 17. The paper says "This list includes all possible eight combinations of high-degree vertices other than A^{HS}_old · B^{SS}_old · C^{SH}_old and A^{HS}_old · B^{SS}_old · C^{SH}_old."
-- Eqs (12)–(14): §5.2, p. 16 (common, low, and high/medium data structures respectively).
-
-- A path's three edges can each be in the new phase or an old phase. 2³ = 8 combinations.
-- Paper maintains data structures for combinations that are not "all old, all old, all old" (which would just be the warm-up).
-- Reference paper Table 2 / Eq (15); we don't reproduce.
-
-### §6.5 State of Theorem 1 (paper)
-
-**Paper map**:
-- Theorem 1 (general graph result): §1, p. 2 statement; §8, p. 29 restatement; proven by combining Theorem 2 + Claim 8.1 (paper §8, p. 30).
-- Theorem 2 (layered graph result): §1, p. 3 statement; §4, p. 13 restatement at start of "Setup for the Main Algorithm". Proven via Lemma 5.1 + the de-assumption arguments in §6, §7. Final assembly: §7, p. 25 ("Proof of Theorem 2.").
-
-- Reproduce Theorem 1 of paper: O(m^{2/3−ε}) worst-case update time, ε = 0.0098109 with current ω.
-- Refer to paper §5 for the full proof.
-
-**Citations used in §6**: paper §4–§5 (primarily), [Str69] (Strassen, for context), [ADW+25] (for current ω).
+**Citations used**: paper §4–§5; [Str69]; [ADW+25].
 
 ---
 
@@ -517,13 +472,13 @@ This is **Proof 3** of the essay.
 
 - Implementation: Python 3.11 + NumPy. Code in `code/` of the project.
 - Hardware: state CPU, RAM (one line).
-- Algorithms compared:
-  - **Simple-Wedge**: paper Appendix A, our implementation, O(n) per update.
-  - **Naive-Recompute**: at each update, recompute the 4-cycle count from scratch via wedge sum (Alon–Yuster–Zwick style). O(m·n) or worse per update.
-- Datasets:
-  - **Erdős–Rényi** G(n, p): n ∈ {200, 500, 1000, 2000, 5000}, three densities each (sparse p = c/n, medium p = c/√n, dense p = 0.1).
-  - **Barabási–Albert**: same n range, attach 5 edges per new vertex.
-  - **Real-world**: one SNAP graph, e.g., `email-Enron` (n ≈ 36k, m ≈ 180k). Smaller alternative if memory tight: `ca-GrQc` (n ≈ 5k).
+- Algorithms compared (one fixed baseline — F10):
+  - **Simple-Wedge**: paper Appendix A, our implementation, $O(n)$ per update.
+  - **Naive-Recompute (wedge-sum)**: at each update, recompute $\#4\text{-cycles} = \tfrac{1}{2} \sum_v \binom{W(v)}{2}$ from scratch in $O(n+m)$ per update. Brute force is used only as a tiny-graph correctness oracle (n ≤ 50), never as a reported baseline.
+- Datasets (sizes capped per F9):
+  - **Erdős–Rényi** G(n, p): n ∈ {200, 500, 1000, 2000} for both algorithms, three densities each. n = 5000 is run for **Simple-Wedge only** (Naive-Recompute infeasible at that scale in Python).
+  - **Barabási–Albert**: 1–2 sizes for shape contrast.
+  - **Real-world** (Simple-Wedge only): one *small* SNAP graph, e.g., `ca-GrQc` (n ≈ 5k, m ≈ 14k). Larger graphs (`email-Enron`, etc.) need a sparse wedge representation we do not implement.
 - Update streams: random insertion-only, mixed 50/50 insert/delete (after a build-up phase).
 
 ### §7.2 Methodology and metrics (~¼ page)
