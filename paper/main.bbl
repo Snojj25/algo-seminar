@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{13}
+\begin{thebibliography}{17}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -71,6 +71,30 @@
 \shownote{PODS 2025, Article 091. \url{https://doi.org/10.1145/3725228}}.
 
 
+\bibitem[Eppstein et~al\mbox{.}(2012)]%
+        {EGST12}
+\bibfield{author}{\bibinfo{person}{David Eppstein}, \bibinfo{person}{Michael~T.
+  Goodrich}, \bibinfo{person}{Darren Strash}, {and} \bibinfo{person}{Lowell
+  Trott}.} \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{Extended Dynamic Subgraph Statistics Using h-Index
+  Parameterized Data Structures}.
+\newblock \bibinfo{journal}{\emph{Theoretical Computer Science}}
+  \bibinfo{volume}{447} (\bibinfo{year}{2012}), \bibinfo{pages}{44--52}.
+\newblock
+
+
+\bibitem[Eppstein and Spiro(2009)]%
+        {ES09}
+\bibfield{author}{\bibinfo{person}{David Eppstein} {and}
+  \bibinfo{person}{Emma~S. Spiro}.} \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{The h-Index of a Graph and its Application to
+  Dynamic Subgraph Statistics}. In \bibinfo{booktitle}{\emph{Algorithms and
+  Data Structures (WADS 2009)}} \emph{(\bibinfo{series}{LNCS},
+  Vol.~\bibinfo{volume}{5664})}. \bibinfo{publisher}{Springer},
+  \bibinfo{pages}{278--289}.
+\newblock
+
+
 \bibitem[Hanauer et~al\mbox{.}(2022)]%
         {HHH22}
 \bibfield{author}{\bibinfo{person}{Kathrin Hanauer}, \bibinfo{person}{Monika
@@ -94,6 +118,17 @@
   Problems via the Online Matrix-Vector Multiplication Conjecture}. In
   \bibinfo{booktitle}{\emph{Proceedings of the Forty-Seventh Annual ACM
   Symposium on Theory of Computing (STOC)}}. \bibinfo{pages}{21--30}.
+\newblock
+
+
+\bibitem[Hu et~al\mbox{.}(2022)]%
+        {HLS22}
+\bibfield{author}{\bibinfo{person}{Xiao Hu}, \bibinfo{person}{Qizhi Liu}, {and}
+  \bibinfo{person}{Stavros Sintos}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Lower Bounds for Dynamic Maintenance of Cyclic
+  Joins}. In \bibinfo{booktitle}{\emph{Proceedings of the 41st ACM
+  SIGMOD-SIGACT-SIGAI Symposium on Principles of Database Systems (PODS)}}.
+  \bibinfo{pages}{275--286}.
 \newblock
 
 
@@ -187,6 +222,18 @@
 \newblock \showarticletitle{Gaussian Elimination is Not Optimal}.
 \newblock \bibinfo{journal}{\emph{Numer. Math.}} \bibinfo{volume}{13},
   \bibinfo{number}{4} (\bibinfo{year}{1969}), \bibinfo{pages}{354--356}.
+\newblock
+
+
+\bibitem[T{\v{e}}tek(2022)]%
+        {Tetek22}
+\bibfield{author}{\bibinfo{person}{Jakub T{\v{e}}tek}.}
+  \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Approximate Triangle Counting via Sampling and Fast
+  Matrix Multiplication}. In \bibinfo{booktitle}{\emph{49th International
+  Colloquium on Automata, Languages, and Programming (ICALP 2022)}}
+  \emph{(\bibinfo{series}{LIPIcs}, Vol.~\bibinfo{volume}{229})}.
+  \bibinfo{pages}{107:1--107:20}.
 \newblock
 
 

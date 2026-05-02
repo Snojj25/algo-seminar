@@ -15,6 +15,7 @@
 %% ---------------------------------------------------------------
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{float}
 %% TikZ for Figure 2 (the lifting construction in Section 3.2).
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,calc}
@@ -36,6 +37,8 @@
 \newcommand{\rfmm}[3]{\omega(#1,#2,#3)}
 
 \begin{document}
+
+\raggedbottom
 
 %% ---------------------------------------------------------------
 %% Front matter
@@ -75,27 +78,26 @@
 \begin{abstract}
 %% Owner: A. ~150 words. Arc in SECTIONS.md "Abstract".
 %% Beats: (1) IVM-for-cyclic-joins framing, (2) state of the art (triangles tight,
-%% 4-cliques tight, 4-cycles long believed O(m^{2/3})), (3) Assadi--Shah's
+%% 4-cliques tight, 4-cycles long believed O(m^{2/3})), (3) Assadi-Shah's
 %% O(m^{2/3-eps}) result via FMM, (4) what this essay covers (reduction + simple
 %% algo + warm-up + 3 proofs), (5) experimental complement.
-Counting subgraphs in a fully dynamic host graph, viewed through the
-database lens of incremental view maintenance for cyclic joins, is a
-primitive whose worst-case update complexity is settled for two of
-the three patterns on at most four vertices: triangles are tight at
-$O(\sqrt{m})$ and $4$-cliques are tight at $O(m)$. For $4$-cycles
-the long-standing upper bound was $O(m^{2/3})$, inherited from a
-wedge-maintenance argument of~\cite{HHH22}. Recent work of Assadi
-and Shah~\cite{AssadiShah25} breaks this barrier and obtains worst-case
-update time $O(m^{2/3-\varepsilon})$ for a constant $\varepsilon > 0$,
-with the speedup driven by fast rectangular matrix multiplication---a
-tool previously thought inapplicable to dynamic IVM. This essay
-gives a self-contained treatment of four ingredients of that
-argument: the reduction from general to $4$-layered graphs, a simple
-$O(n)$ wedge-maintenance baseline, a warm-up algorithm with two
-frozen relations whose rectangular FMM step is laid out in full, and
-a closed-form certificate that the resulting constraint system is
-feasible at $\omega = 2$. An empirical complement benchmarks the
-simple algorithm against naive recomputation.
+Counting subgraphs in a fully dynamic graph is used in databases
+for incremental view maintenance (IVM) of cyclic joins. The
+worst-case update time is settled for two of the three patterns on
+at most four vertices: triangles at $O(\sqrt{m})$, $4$-cliques at
+$O(m)$. For $4$-cycles the previous upper bound was
+$O(m^{2/3})$~\cite{HHH22}; Assadi and
+Shah~\cite{AssadiShah25} recently improved this to
+$O(m^{2/3-\varepsilon})$ for a constant $\varepsilon > 0$ using
+fast matrix multiplication (FMM), a tool previously thought
+inapplicable to dynamic IVM. This essay re-presents their algorithm
+through the IVM-for-cyclic-joins lens and contributes (i) a
+closed-form algebraic certificate that the underlying constraint
+system is feasible at the conjectural $\omega = 2$ with explicit
+rational parameters, complementing the numerical verification
+of~\cite{AssadiShah25}; and (ii) an empirical comparison of a
+simple $O(n)$ wedge-maintenance baseline against naive
+recomputation.
 \end{abstract}
 
 %% CCS concepts. Pick the right codes from https://dl.acm.org/ccs
@@ -111,161 +113,258 @@ fast matrix multiplication, incremental view maintenance, cyclic joins}
 %% =========================================================================
 \section{Introduction}
 \label{sec:intro}
-%% Owner: A. ~1.5 pages. SECTIONS.md "§1 Introduction".
 
-\subsection{Subgraph counting and dynamic graphs}
-\label{sec:intro:motivation}
-%% SECTIONS.md §1.1. Paper §1 p.1 par.1-2.
-%% Hook: subgraph counting is fundamental; cite [RPS+21,SMS+20,MSOI+02].
-%% Define fully dynamic model in one sentence; objective = worst-case update time.
-Counting occurrences of a small pattern graph---triangles, $4$-cycles,
-$4$-cliques---inside a larger host graph is one of the oldest and most
-broadly applicable problems in algorithmic graph theory. The same
-counting primitive underpins clustering and community-detection
+Counting occurrences of a small pattern graph (triangles, $4$-cycles,
+$4$-cliques) inside a larger host graph is one of the oldest and
+most broadly applicable problems in algorithmic graph theory. The
+same primitive underpins clustering and community-detection
 heuristics in social-network analysis~\cite{SMS20}, motif-discovery
-pipelines in computational biology~\cite{MSOI02}, and recurring
-subexpression evaluation in database query
-processing~\cite{RPS21}. In each of these settings the host graph is
-not a static input but an object that evolves over time as edges are
-added and removed.
+pipelines in computational biology~\cite{MSOI02}, and
+recurring-subexpression evaluation in database query
+processing~\cite{RPS21}.
 
-The \emph{fully dynamic} model formalises this regime: the host graph
-$G$ receives a sequence of edge insertions and deletions, and after
-each update the algorithm must report the current number of
-occurrences of the fixed pattern. The relevant complexity measure is
-the \emph{worst-case update time}, the maximum work spent on any
-single update over the entire stream---a strictly stronger guarantee
-than amortised time, and the one we will track throughout this essay.
+A further motivation, central to this paper, comes from database
+theory: \emph{incremental view maintenance} (IVM) for \emph{cyclic
+joins}. A cyclic join is a query $R_1 \bowtie R_2 \bowtie \cdots
+\bowtie R_k$ over $k$ binary relations whose attribute schemas form
+a cycle, with each relation sharing one attribute with its predecessor
+and one with its successor, and the last relation closing back to
+the first. Such queries are a classical hard case for join
+evaluation~\cite{NRR14,NPRR18}. The
+four-way instance considered throughout this paper is
+\[
+  J \;=\; A(L_1,L_2) \bowtie B(L_2,L_3) \bowtie C(L_3,L_4) \bowtie D(L_4,L_1),
+\]
+which has a clean graph-theoretic reading: each binary relation
+encodes a bipartite edge set between two attribute domains, and the
+size of $J$ equals the number of $4$-cycles in the resulting
+$4$-layered graph (made precise in
+Section~\ref{sec:reduction:joins}). IVM is the problem of updating
+a query's answer incrementally after each tuple update, without
+rescanning the database. Maintaining $|J|$ under tuple updates is
+therefore equivalent to dynamic $4$-cycle counting; the converse
+direction holds via a structural reduction recalled in
+Section~\ref{sec:reduction}.
 
-\subsection{The cyclic-join framing}
-\label{sec:intro:joins}
-%% SECTIONS.md §1.2. Paper §1 p.1 (database angle), p.2 (4-way cyclic join), Fig 1 p.7.
-%% Forward-reference Section 3. Insert Figure 1 here.
-Subgraph counting also has a natural reading in database theory.
-Given four binary relations
-$A(L_1, L_2)$, $B(L_2, L_3)$, $C(L_3, L_4)$, $D(L_4, L_1)$, the size
-of the cyclic four-way join
-$J = A \bowtie B \bowtie C \bowtie D$ counts exactly the number of
-$4$-cycles in the $4$-layered graph whose layers are the attribute
-domains $L_1, \dots, L_4$ and whose edges encode the relation
-tuples~\cite{NRR14,NPRR18}. Figure~\ref{fig:layered} illustrates the
-correspondence on a small instance. Maintaining $|J|$ under tuple
-insertions and deletions is the \emph{incremental view-maintenance}
-(IVM) problem for this cyclic join, and the dynamic $4$-cycle
-counting question is, up to a structural reduction, the same problem.
-We make this equivalence precise---and lift it from the layered
-setting to general graphs---in Section~\ref{sec:reduction};
-Theorem~\ref{thm:lifting} is the key statement.
+In each of these settings the host graph evolves under edge
+insertions and deletions, and recomputing the count from scratch
+is infeasible at scale. This motivates the \emph{fully dynamic}
+model of subgraph counting, in which the exact count must be
+reported after every update; we measure cost by the
+\emph{worst-case update time}, the maximum work on any single
+update, which is strictly stronger than amortised time.
 
-\begin{figure}[t]
-  \centering
-  % \includegraphics[width=\columnwidth]{figures/fig1-layered}
-  \framebox[\columnwidth]{\rule{0pt}{6em}\textsc{Fig 1 placeholder}}
-  \caption{A 4-layered graph encoding a cyclic join $A \bowtie B \bowtie C \bowtie D$. One layered 4-cycle highlighted. Adapted from~\cite{AssadiShah25}, Fig.~1.}
-  \label{fig:layered}
-\end{figure}
+The complexity of dynamic subgraph counting on small patterns is
+well understood for two of the three patterns on at most four
+vertices, summarised in Table~\ref{tab:ladder}. Triangles have
+worst-case update time $\Theta(\sqrt{m})$~\cite{KNN20,HKNS15}
+(the lower bound is conditional on the OMv conjecture);
+$4$-cliques have complexity $\Theta(m)$ for combinatorial
+algorithms under the $4$-clique
+conjecture~\cite{HHH22}. The $4$-cycle lies between these two
+extremes: Hanauer, Henzinger, and Hua~\cite{HHH22} obtained
+$O(m^{2/3})$ by generalising the triangle bound's
+wedge-maintenance idea, with the only matching lower bound the
+$\Omega(m^{1/2-\gamma})$ inherited from triangles.
 
-\subsection{The state of the art}
-\label{sec:intro:ladder}
-%% SECTIONS.md §1.3. Paper §1 p.2 (the ladder paragraphs).
-%% Triangles: O(sqrt(m)) tight [KNN+20,HKNS15].
-%% 4-cliques: O(m) tight [HHH22] (combinatorial conjecture).
-%% 4-cycles: prior O(m^{2/3}) [HHH22], lower Omega(m^{1/2}) [HKNS15].
-%% Insert Table 1 here.
-For each pattern, the goal is to express the worst-case update time
-as a function of $m$, the current number of edges. The state of the
-art forms a small ladder, summarised in Table~\ref{tab:ladder}.
-Triangles are essentially settled: an upper bound of $O(\sqrt{m})$ is
-due to Kara, Ngo, Nikolic, Olteanu, and Zhang~\cite{KNN20}, matched
-up to subpolynomial factors by an $\Omega(m^{1/2-\gamma})$ conditional
-lower bound under the OMv conjecture of Henzinger, Krinninger,
-Nanongkai, and Saranurak~\cite{HKNS15}. At the other end of the
-ladder, $4$-cliques are pinned to $O(m)$ for combinatorial algorithms,
-where a folklore upper bound meets the $\Omega(m^{1-\gamma})$
-combinatorial $4$-clique-conjecture lower bound of Hanauer, Henzinger,
-and Hua~\cite{HHH22}.
-Sandwiched between these is the $4$-cycle. The same authors
-of~\cite{HHH22} obtained a worst-case update time of $O(m^{2/3})$ by
-generalising the wedge-maintenance idea behind the triangle bound,
-while the only matching lower bound remains the OMv-based
-$\Omega(m^{1/2-\gamma})$ inherited from the triangle case. The
-$m^{1/2}$--$m^{2/3}$ gap is the empty rung in the ladder, and asks an
-obvious question: is $O(m^{2/3})$ the right answer, or can FMM-based
-techniques push the upper bound below it?
+Assadi and Shah~\cite{AssadiShah25} prove that the $O(m^{2/3})$
+upper bound is not tight. They give an algorithm with worst-case
+update time $O(m^{2/3-\varepsilon})$ for a constant $\varepsilon >
+0$ depending on the matrix-multiplication exponent $\omega$, the
+smallest constant for which two $n \times n$ matrices can be
+multiplied in $O(n^\omega)$ time. The current best is
+$\omega < 2.371339$~\cite{ADW25}, yielding $\varepsilon \approx
+0.0098$; under the conjectural optimum $\omega = 2$ the bound
+improves to $\varepsilon = 1/24$. The result is conceptually surprising: fast
+matrix multiplication (FMM) was previously believed incompatible
+with dynamic IVM (Section~\ref{sec:related:fmm-belief}), and the
+Online Matrix-Vector multiplication (OMv) lower bound
+of~\cite{HKNS15} rules out only combinatorial improvements, leaving
+room for an algebraic speedup~\cite[\S1]{AssadiShah25}.
 
-\begin{table}[t]
+
+\begin{table}[H]
   \centering
   \begin{tabular}{lll}
     \toprule
     Pattern & Upper bound & Lower bound \\
     \midrule
     3-cycle (triangle) & $O(\sqrt{m})$~\cite{KNN20} & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
-    4-cycle & $O(m^{2/3-\varepsilon})$~\cite{AssadiShah25}\footnotemark[1] & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
-    4-clique & $O(m)$ folklore & $\Omega(m^{1-\gamma})$~\cite{HHH22} \\
+    4-cycle & $O(m^{2/3-\varepsilon})$~\cite{AssadiShah25} & $\Omega(m^{1/2-\gamma})$~\cite{HKNS15} \\
+    4-clique & $O(m)$ folklore~\cite{HHH22} & $\Omega(m^{1-\gamma})$~\cite{HHH22} \\
     \bottomrule
   \end{tabular}
-  \caption{State of the art for fully dynamic subgraph counting. Lower bounds are conditional (OMv for 3- and 4-cycles; combinatorial 4-clique conjecture for 4-cliques).}
+  \caption{State of the art for fully dynamic subgraph counting on patterns of at most four vertices. Lower bounds are conditional (OMv for 3- and 4-cycles; combinatorial 4-clique conjecture for 4-cliques).}
   \label{tab:ladder}
 \end{table}
-\footnotetext[1]{$\varepsilon > 0$ is a constant depending on the matrix-multiplication exponent $\omega$; see Theorem~\ref{thm:main-paper}.}
 
-\subsection{The Assadi--Shah result}
-\label{sec:intro:result}
-%% SECTIONS.md §1.4. Paper Theorem 1 (p.2), the surprise commentary (p.2),
-%% IVM-with-FMM observation (p.3), worst-case-not-amortized note (p.3).
-%% Numbers: eps approx 0.0098 for omega=2.371339; eps=1/24 for omega=2.
-The answer, due to Assadi and Shah~\cite{AssadiShah25}, is that
-$O(m^{2/3})$ is \emph{not} the right answer:
-they give an algorithm with worst-case update time $O(m^{2/3-\varepsilon})$
-for some constant $\varepsilon > 0$; we restate this as
-Theorem~\ref{thm:main-paper}. The constant $\varepsilon$ depends on
-the matrix-multiplication exponent $\omega$. With the current best
-$\omega < 2.371339$~\cite{ADW25} the bound yields $\varepsilon \approx 0.0098$;
-under the conjectural optimum $\omega = 2$ it improves to
-$\varepsilon = 1/24$.
+%% =========================================================================
+\section{Related work}
+\label{sec:related}
 
-Two features of this result make it conceptually surprising. First,
-the speedup engine is fast (rectangular) matrix multiplication, and
-it was widely believed that FMM cannot help in dynamic IVM at all:
-Strassen-style algorithms~\cite{Strassen69} require both factors to
-be available up front, whereas in the dynamic setting the matrices
-themselves are the changing objects. Static FMM-based subgraph
-counting has been known since~\cite{AYZ97}, but no analogous dynamic
-speedup had appeared. Second, this surprise is sharp: the algorithm
-of~\cite{AssadiShah25} only beats $O(m^{2/3})$ once
-$\omega < 5/2 - O(\varepsilon)$, so even Strassen's $\omega \approx 2.81$
-is insufficient and only the modern bounds of~\cite{ADW25} push the
-exponent below the threshold. The contrast with $4$-cliques is
-instructive: their $\Omega(m^{1-\gamma})$ lower bound rests on the
-\emph{combinatorial} $4$-clique conjecture and therefore blocks
-FMM-based speedups, while the $\Omega(m^{1/2-\gamma})$ lower bound
-for $4$-cycles only rules out combinatorial reductions through OMv
-and leaves room for an algebraic improvement of exactly the kind
-delivered here.
+Dynamic subgraph counting builds on three lines of
+work: static FMM-based subgraph algorithms, dynamic
+wedge-maintenance for triangles, and the $4$-vertex result of
+Hanauer, Henzinger, and Hua. The following sections present each
+of these in turn. We then discuss why fast matrix multiplication
+was long thought to be incompatible with incremental view
+maintenance, and close with the positioning of the Assadi-Shah
+result.
 
-\subsection{What this essay does}
-\label{sec:intro:roadmap}
-%% SECTIONS.md §1.5. Roadmap of our slice. Out of scope: paper §6, §7.
-After notation in Section~\ref{sec:prelim}, the body of this essay
-delivers four formal results. Section~\ref{sec:reduction} gives a
-self-contained reduction from the general-graph problem to the
-$4$-layered version, culminating in an update-protocol argument
-(Theorem~\ref{thm:lifting}) that turns counted $3$-walks into
-$3$-paths. Section~\ref{sec:simple} presents and fully proves the
-simple $O(n)$ wedge-maintenance baseline
-(Lemma~\ref{lem:simple}), which doubles as the algorithm we
-benchmark. Section~\ref{sec:warmup} develops the warm-up
-algorithm in which $A$ and $C$ are frozen, gives a complete
-dimension analysis of its rectangular FMM step
-(Theorem~\ref{thm:fmm-step}), and provides a closed-form
-verification that the constraint system admits a positive
-$\varepsilon_1$ at $\omega = 2$ (Lemma~\ref{lem:feasibility}).
-An empirical study of the simple algorithm against naive
-recomputation appears in Section~\ref{sec:experiments}. We
-sketch how the warm-up lifts to Theorem~\ref{thm:main-paper}
-via phases but deliberately leave the de-assumption
-machinery---tiny vertices and vertex-class transitions---out of
-scope, and we do \emph{not} reprove Theorem~\ref{thm:main-paper}.
+\subsection{Static algorithms for $4$-cycles}
+\label{sec:related:static}
+The trivial static algorithm enumerates all \emph{wedges} (length-2
+paths $u$-$x$-$v$, i.e., pairs of edges sharing a common midpoint
+$x$) and, for each ordered pair $(u, v)$, counts the wedges between
+them; this gives $O(m^{3/2})$ time on graphs with $m$ edges and is
+tight for combinatorial algorithms. Alon, Yuster, and Zwick~\cite{AYZ97} gave
+the first improvement to use fast matrix multiplication: their
+algorithm runs in time $O(m^{2\omega/(\omega+1)})$, which evaluates
+to roughly $O(m^{1.41})$ at the current $\omega$ and to
+$O(m^{4/3})$ at the conjectural optimum $\omega = 2$. The
+algorithm computes $A^2$ for the adjacency matrix $A$ on the
+high-degree subgraph and combines it with a list-and-count step on
+the low-degree side; it was the first piece of evidence that FMM
+yields nontrivial speedups for $4$-cycle counting in any setting.
+Crucially, this evidence was static: until 2025, no FMM-based
+speedup over the combinatorial bound was known in the dynamic
+regime.
+
+\subsection{Dynamic triangle counting and the OMv barrier}
+\label{sec:related:triangles}
+The triangle case is the template for this line of work. Kara,
+Ngo, Nikolic, Olteanu, and Zhang~\cite{KNN20} maintain
+the triangle count in worst-case update time $O(\sqrt{m})$ by
+storing, for each ordered pair of vertices $(u, v)$, the number of
+common neighbours $W[u, v] = |N(u) \cap N(v)|$. The number of
+triangles created by inserting an edge $(u, v)$ is exactly
+$W[u, v]$; updating $W$ after the insertion costs $O(\deg(u))$ for
+the row indexed by $u$ and $O(\deg(v))$ for the row indexed by $v$,
+and a high/low-degree partition (with threshold $\sqrt{m}$) caps
+the relevant degrees and gives the $\sqrt{m}$ bound. The
+OMv conjecture of Henzinger, Krinninger, Nanongkai, and
+Saranurak~\cite{HKNS15} implies that $\Omega(m^{1/2-\gamma})$ is the
+right answer; this lower bound holds even against algorithms that
+invoke fast matrix multiplication, because the OMv reduction is
+combinatorially robust. The same lower bound is inherited by
+$4$-cycle counting via a straightforward reduction;
+\cite{HLS22} additionally show that the bound $\Omega(m^{1/2-\gamma})$
+already holds for $4$-cycle counting on random graphs, ruling out
+average-case improvements through that channel. Earlier work
+of~\cite{ES09,EGST12} maintained $3$- and $4$-vertex subgraph
+counts in $O(h)$ amortised update time, where $h$ is the $h$-index
+of the graph; this is incomparable with bounds expressed purely in
+terms of $m$ and is not a direct predecessor of the worst-case
+$O(\sqrt{m})$ / $O(m^{2/3})$ line of work, but it is the closest
+relative on the dynamic side.
+
+\subsection{The $O(m^{2/3})$ algorithm of Hanauer, Henzinger, and Hua}
+\label{sec:related:hhh}
+Hanauer, Henzinger, and Hua~\cite{HHH22} extended the
+high/low-degree wedge-maintenance idea from triangles to all
+$4$-vertex patterns. For $4$-cycles, they partition the vertex set
+$V$ into a \emph{low-degree} class
+$V_L = \{v : \deg(v) \le m^{1/3}\}$ and a \emph{high-degree}
+class $V_H = V \setminus V_L$. The handshaking bound
+$\sum_v \deg(v) = 2m$ caps $|V_H|$ at $\frac{2m}{m^{1/3}} = O(m^{2/3})$,
+which is the load-bearing inequality of the analysis.
+
+The algorithm maintains two indexed counts:
+\begin{itemize}
+  \item $W_{\mathrm{lo}}[u, v]$, the number of wedges $u$-$x$-$v$
+        with low-degree midpoint $x \in V_L$, stored for every pair
+        of endpoints $(u, v)$;
+  \item $P_{\mathrm{lolo}}[u, v]$, the number of $3$-paths
+        $u$-$x$-$y$-$v$ with two low-degree midpoints
+        $x, y \in V_L$, stored for every pair of endpoints.
+\end{itemize}
+On an update incident to $u$, the affected entries of $W_{\mathrm{lo}}$
+are those of the form $W_{\mathrm{lo}}[w, v]$ for a low-degree
+$w \in N(u) \cap V_L$ and a neighbour $v$ of $w$; iterating the
+inner pair costs at most
+$|N(u)| \cdot \max_{w \in V_L} |N(w)| \le n \cdot m^{1/3}$
+in the trivial reading, but only the low-degree neighbours of $w$
+contribute new wedges, and there are at most $m^{1/3}$ of them, so
+the work reduces to
+$|N(u)| \cdot m^{1/3} \le m^{1/3} \cdot m^{1/3} = m^{2/3}$ when
+$u \in V_L$ and to $|N(u)| \cdot m^{1/3}$ in general. A symmetric
+analysis on $P_{\mathrm{lolo}}$ keeps it within the same
+$O(m^{2/3})$ budget. Wedges through high-degree midpoints are
+maintained only between pairs of high-degree endpoints; there are
+$|V_H|^2 = O(m^{4/3})$ such pairs, but the per-update changes are
+confined to the at most $|V_H| = O(m^{2/3})$ pairs that share an
+endpoint with the updated edge.
+
+Queries case-split on whether each midpoint of the counted
+$3$-path is low or high. The bottleneck case, with two high-degree
+midpoints and at least one low-degree endpoint $u$, requires
+iterating over $N(u)$, which has size at most $m^{1/3}$, and
+combining stored counts; the inner step iterates over high-degree
+vertices, of which there are $O(m^{2/3})$. Either iteration alone
+gives a query cost of $O(m^{2/3})$, matching the maintenance
+budget.
+
+This decomposition suggests that $O(m^{2/3})$ should be tight:
+$4$-cycles would sit exactly at the geometric mean of triangles
+and $4$-cliques, and any further improvement would require a
+fundamentally different technique. Assadi-Shah~\cite{AssadiShah25}
+show that this reading is mistaken: algebraic FMM techniques can
+push the upper bound below $m^{2/3}$.
+
+\subsection{Why FMM was thought not to help in IVM}
+\label{sec:related:fmm-belief}
+Static FMM-based subgraph counting~\cite{AYZ97} requires both factors
+of the product, typically two slices of the adjacency matrix, to
+be assembled before the multiplication is invoked. In the fully
+dynamic regime the matrices are themselves the moving objects: each
+edge update changes a single entry, and waiting until enough updates
+accumulate to make a batched FMM call worthwhile only gives an
+\emph{amortised} bound, not a worst-case one. The
+prevailing intuition was therefore that any FMM-based speedup must
+be amortised, and could not deliver a worst-case improvement of the
+kind we discuss~\cite[\S1]{AssadiShah25}.
+
+Assadi and Shah~\cite{AssadiShah25} circumvent this intuition by
+introducing \emph{phases}: contiguous blocks of $m^{1-\delta}$
+consecutive updates, for a constant $\delta > 0$. During a phase,
+queries are answered by a slower routine that uses precomputed
+products from the \emph{previous} phase together with on-the-fly
+computation over the in-progress phase; in parallel, the FMM
+products needed for the \emph{current} phase are computed
+incrementally, with the per-update share of the precomputation
+budgeted at $O(m^{2/3-\varepsilon})$ work. By the end of the phase,
+the precomputed products are ready, and the next phase reuses them
+as its previous-phase data. Because both the per-update share of
+precomputation and the slower routine respect an
+$O(m^{2/3-\varepsilon})$ ceiling on every individual update, not
+merely on average, the bound is genuinely worst-case
+(Section~\ref{sec:prelim:dynamic}) rather than amortised.
+
+\subsection{Overview of the Assadi-Shah algorithm}
+\label{sec:related:positioning}
+The full Assadi-Shah algorithm runs on a $4$-layered graph, groups
+the vertices in each layer into many degree classes (high, medium,
+low in the outer layers; dense, sparse in the inner layers), and
+precomputes one rectangular FMM product per pair of compatible
+classes. A query then composes a constant number of stored entries
+plus a small-degree iteration. The $\varepsilon$ in the exponent is
+the maximum value for which the system of constraints (one per
+class pair, expressing that both setup cost and per-query cost stay
+within the budget) is feasible at the prevailing rectangular
+FMM exponents. The argument also requires two simplifying
+assumptions which the paper later discharges: that every layer
+contains exactly $m^{2/3}$ vertices (no \emph{tiny} vertices), and
+that vertices do not migrate between degree classes during a
+phase.
+
+We cover the conceptual core: the reduction from general graphs to
+$4$-layered graphs (Section~\ref{sec:reduction}), the simple $O(n)$
+baseline (Section~\ref{sec:simple}), which also serves as the
+algorithm we benchmark, and the restricted variant with two frozen
+relations (Sections~\ref{sec:warmup}--\ref{sec:phases}) whose
+rectangular FMM step we develop in full and whose constraint
+system we verify in closed form. The de-assumption machinery (tiny
+vertices and vertex-class transitions) is left out of scope.
 
 %% =========================================================================
 \section{Preliminaries}
@@ -277,16 +376,20 @@ scope, and we do \emph{not} reprove Theorem~\ref{thm:main-paper}.
 %% SECTIONS.md §2.1. Paper §2.1 p.6.
 %% Define G=(V,E), n, m, deg(v), N(v), k-path, k-cycle, wedge, 4-layered graph,
 %% layered 4-cycle.
-Throughout, $G = (V, E)$ is a simple, undirected, unweighted graph
-with no self-loops or parallel edges. We write $n = |V|$ and $m = |E|$.
+Let $G = (V, E)$ be a simple, undirected, unweighted graph with no
+self-loops or parallel edges. We write $n = |V|$ and $m = |E|$.
 For a vertex $v \in V$, $\deg(v)$ denotes its degree and
 $N(v) = \{u : \{u,v\} \in E\}$ its neighborhood.
 
 A \emph{$k$-path} is a sequence of $k+1$ distinct vertices
-$(v_0, v_1, \dots, v_k)$ with $\{v_i, v_{i+1}\} \in E$ for all $0 \le i < k$.
-A $2$-path is also called a \emph{wedge}. A \emph{$k$-cycle} is a sequence
-$(v_0, \dots, v_{k-1})$ of $k$ distinct vertices with $\{v_i, v_{i+1\bmod k}\} \in E$
-for all $0 \le i < k$.
+$(v_0, v_1, \dots, v_k)$ with $\{v_i, v_{i+1}\} \in E$ for all
+$0 \le i < k$. A \emph{$k$-cycle} is a sequence
+$(v_0, \dots, v_{k-1})$ of $k$ distinct vertices with
+$\{v_i, v_{i+1\bmod k}\} \in E$ for all $0 \le i < k$.
+A \emph{wedge} is a $2$-path $(u, x, v)$, equivalently a pair of
+edges $\{u, x\}, \{x, v\} \in E$ sharing the common midpoint $x$
+with distinct endpoints $u \neq v$. We write $W[u, v]$ for the
+number of wedges between $u$ and $v$.
 
 A \emph{$4$-layered graph} is a graph whose vertex set partitions as
 $V = L_1 \cup L_2 \cup L_3 \cup L_4$, with each $L_i$ an independent set
@@ -320,55 +423,62 @@ of~\cite{AssadiShah25} is worst-case.
 %% SECTIONS.md §2.3. Paper §2.1 p.6 "Fast Matrix Multiplication" subsection.
 %% Define omega and omega(a,b,c). Cite [ADW+25] for omega = 2.371339.
 %% Note "combinatorial" excludes Strassen-style.
-Let $\omega$ denote the exponent of square matrix multiplication: two
-$n \times n$ matrices can be multiplied in $O(n^\omega)$ arithmetic
-operations. Strassen~\cite{Strassen69} established $\omega < 3$, and
-the current record is $\omega < 2.371339$~\cite{ADW25}. It is a
-long-standing open problem whether $\omega = 2$.
+Let $\omega$ denote the matrix-multiplication exponent: two $n
+\times n$ matrices can be multiplied in $O(n^\omega)$ arithmetic
+operations. The current record is $\omega < 2.371339$~\cite{ADW25},
+improving on Strassen's $\omega < 3$~\cite{Strassen69}; whether
+$\omega = 2$ remains open. For rectangular products,
+$\rfmm{a}{b}{c}$ denotes the exponent of multiplying an $n^a \times
+n^b$ matrix by an $n^b \times n^c$ matrix in $n^{\rfmm{a}{b}{c}}$
+time; the inner dimension $n^b$ is shared by the two factors,
+while $n^a$ and $n^c$ are the outer dimensions of the left and
+right factors respectively, so $\rfmm{1}{1}{1} = \omega$. Improved
+bounds across the asymmetric range are also in~\cite{ADW25}. An algorithm is
+\emph{combinatorial} if it does not exploit Strassen-style
+identities; combinatorial algorithms therefore do not benefit from
+$\omega < 3$.
 
-For rectangular products we write $\rfmm{a}{b}{c}$ for the exponent
-of multiplying an $n^a \times n^b$ matrix by an $n^b \times n^c$
-matrix in $n^{\rfmm{a}{b}{c}}$ time, so $\rfmm{1}{1}{1} = \omega$.
-Improved upper bounds for $\rfmm{a}{b}{c}$ across the relevant
-asymmetric range are also given in~\cite{ADW25}; the warm-up algorithm
-of Section~\ref{sec:warmup} relies on these.
-An algorithm is \emph{combinatorial} if it does not exploit
-Strassen-style algebraic identities; combinatorial algorithms therefore
-do not benefit from $\omega < 3$.
+The use of FMM in subgraph counting rests on the standard
+identification of biadjacency-matrix products with path counts: if
+$X$ is the biadjacency matrix between layers $L_i$ and $L_{i+1}$
+and $Y$ is the biadjacency matrix between $L_{i+1}$ and $L_{i+2}$,
+then $(XY)_{u,w}$ equals the number of $2$-paths from $u\in L_i$ to
+$w\in L_{i+2}$ through $L_{i+1}$. Iterating the product, $(XYZ)_{u,t}$
+counts the $3$-paths from $u$ to $t$ through three consecutive
+layers, which is exactly the quantity that drives $4$-cycle queries
+in the layered setting (Theorem~\ref{thm:lifting}). Restricting
+$X$, $Y$, $Z$ to specific degree classes yields rectangular factors
+whose products can be computed with the rectangular FMM bound
+$\rfmm{a}{b}{c}$.
 
 \subsection{The OMv conjecture}
 \label{sec:prelim:omv}
-%% SECTIONS.md §2.4. Paper §1 p.1, §1 p.2 "Existing Lower Bounds".
-%% State OMv informally; consequence is Omega(m^{1/2-gamma}) for triangle/4-cycle.
-%% Note OMv does not block FMM-based upper bounds.
 The \emph{Online Matrix-Vector multiplication (OMv) conjecture}
-of~\cite{HKNS15} concerns the following problem: an algorithm preprocesses
-an $n \times n$ Boolean matrix $M$ in polynomial time, then receives
-$n$ Boolean vectors $v_1, \dots, v_n$ one at a time and must output
-$M v_i$ before seeing $v_{i+1}$. The conjecture asserts that no
-algorithm solves the entire instance in total time $O(n^{3-\gamma})$
-for any constant $\gamma > 0$.
-
-Reductions from OMv yield conditional $\Omega(m^{1/2 - \gamma})$ lower
-bounds on the worst-case update time for dynamically maintaining the
-number of triangles or $4$-cycles~\cite{HKNS15,HHH22}. These bounds
-hold even against algorithms that invoke fast matrix multiplication.
-The contrast with $4$-cliques is instructive: the prevailing
-$\Omega(m^{1-\gamma})$ lower bound for $4$-cliques relies on the
-\emph{combinatorial} $4$-clique conjecture and therefore does not
-constrain non-combinatorial algorithms~\cite{HHH22}. For $4$-cycles the
-OMv-based barrier sits well below the best known upper bound, and the
-result we discuss in Section~\ref{sec:warmup} narrows---but does not
-close---this gap.
+of~\cite{HKNS15} concerns the following problem: an algorithm
+preprocesses an $n \times n$ Boolean matrix $M$ in polynomial time,
+then receives $n$ Boolean vectors $v_1, \dots, v_n$ one at a time
+and must output $M v_i$ before seeing $v_{i+1}$. The conjecture
+asserts that no algorithm solves the entire instance in total time
+$O(n^{3-\gamma})$ for any constant $\gamma > 0$. The
+$\Omega(m^{1/2-\gamma})$ lower bounds for dynamic triangle and
+$4$-cycle counting (Section~\ref{sec:related:triangles}) are
+reductions from OMv; we cite the conjecture only to motivate the
+lower bound and do not invoke it in any proof.
 
 %% =========================================================================
 \section{The cyclic-join equivalence}
 \label{sec:reduction}
-%% Owner: B. ~1 page. SECTIONS.md "§3". Includes PROOF 1.
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\columnwidth]{figures/fig1-layered}
+  \framebox[\columnwidth]{\rule{0pt}{6em}\textsc{Fig 1 placeholder}}
+  \caption{A 4-layered graph encoding a cyclic join $A \bowtie B \bowtie C \bowtie D$. One layered 4-cycle highlighted. Adapted from~\cite{AssadiShah25}, Fig.~1.}
+  \label{fig:layered}
+\end{figure}
 
 \subsection{Joins as layered graphs}
 \label{sec:reduction:joins}
-%% SECTIONS.md §3.1. Paper §1 p.1-2 (database angle), §2.2 p.7, Fig 1 p.7.
 The motivating object behind 4-cycle counting on a 4-layered graph
 is the cyclic four-way join
 \[
@@ -408,7 +518,7 @@ is depicted in Figure~\ref{fig:lifting}.
 
 Crucially, a single update $(u, v)$ in $G$ becomes four updates in
 $G'$, one per matrix, and the order in which these are applied is
-load-bearing for the proof of Theorem~\ref{thm:lifting}. We adopt the
+critical for the proof of Theorem~\ref{thm:lifting}. We adopt the
 following \emph{update protocol}~\cite{AssadiShah25}:
 \begin{description}
   \item[Insertion.] Insert $(u, v)$ first into $D$, then into $C$,
@@ -416,7 +526,7 @@ following \emph{update protocol}~\cite{AssadiShah25}:
   \item[Deletion.] Delete $(u, v)$ from $A$ first, then from $B$,
         then from $C$, and last from $D$.
   \item[Query.] Read off the change in the layered $4$-cycle count
-        immediately after the $D$-update -- between the $D$ step and
+        immediately after the $D$-update, between the $D$ step and
         the next of $A$, $B$, $C$.
 \end{description}
 In both cases, the protocol guarantees that the lifted edge $(u, v)$
@@ -493,42 +603,25 @@ over-report.
 \label{sec:reduction:theorem}
 %% SECTIONS.md §3.3. Paper Claim 8.1 + proof p.30. PROOF 1 of essay.
 
-\begin{theorem}[General--layered equivalence]
+\begin{theorem}[General-to-layered equivalence]
 \label{thm:lifting}
 %% Statement is ours; proof follows the argument of \cite{AssadiShah25}.
 %% F1: LHS must be "walks", not "paths" -- saying "paths = paths" is vacuous.
 Let $\{u, v\}$ be the edge currently being updated in $G$, and let $G'$ be the lifted graph of Section~\ref{sec:reduction:lifting} immediately after the $D$-step of the protocol (and before any subsequent $A, B, C$ step). At this moment, the number of length-$3$ \emph{walks} in $G'$ from $(u, 1) \in L_1$ to $(v, 4) \in L_4$ equals the number of length-$3$ paths from $u$ to $v$ in the current $G$.
 \end{theorem}
 
-\begin{proof}
-We follow the argument of~\cite{AssadiShah25}. The forward direction
-is immediate: every length-$3$ path $u, x, y, v$ in $G$ has, by
-construction, a corresponding lifted walk
-$(u, 1), (x, 2), (y, 3), (v, 4)$ in $G'$ whose three edges are the
-lifts of the three edges of the original path into the matrices $A$,
-$B$, and $C$ respectively. Distinct paths in $G$ produce distinct
-lifted walks in $G'$, so the count of length-$3$ paths from $u$ to
-$v$ in $G$ is at most the count of length-$3$ walks from
-$(u, 1) \in L_1$ to $(v, 4) \in L_4$ in $G'$.
-
-For the reverse direction, fix a length-$3$ walk
-$(u, 1), (x, 2), (y, 3), (v, 4)$ in $G'$ and write its underlying
-sequence in $V$ as $u, x, y, v$. We show that the four vertices are
-distinct, so that the walk lifts a path in $G$.
-Because $G$ contains no self-loops, the edge $\{w,w\}$ is never in $E$
-and therefore never lifted; this rules out $x = u$, $x = y$, and
-$y = v$ (each of which would require a self-loop in $G$ to be lifted
-into $A$, $B$, or $C$). The remaining inequalities involve the edge
-$(u,v)$ itself. If $x = v$, the first edge of the walk would be the
-lift of $\{u,v\}$ into $A$; if $y = u$, the third edge would be the
-lift of $\{u,v\}$ into $C$. But the protocol guarantees that
-immediately after the $D$-update, $(u,v)$ is absent from each of
-$A, B, C$, so neither lifted edge exists in $G'$ at query time,
-contradiction. Hence $u, x, y, v$ are four distinct vertices and the
-walk lifts a length-$3$ path in $G$. Combined with the (clearly
-injective) forward map, this establishes a bijection between
-length-$3$ paths in $G$ and length-$3$ walks in $G'$ from $(u,1)$
-to $(v,4)$.
+\begin{proof}[Proof sketch]
+We follow~\cite{AssadiShah25}. The forward direction is by
+construction: each length-$3$ path $u, x, y, v$ in $G$ lifts to the
+walk $(u,1), (x,2), (y,3), (v,4)$ in $G'$, using one edge of $A$,
+$B$, $C$ each. For the reverse direction, fix such a walk and write
+its underlying sequence as $u, x, y, v$. Simplicity of $G$ (no
+self-loops to lift) rules out $x \in \{u, y\}$ and $y = v$. The
+protocol rules out $x = v$ and $y = u$: each would require the edge
+$\{u, v\}$ to be present in $A$ or $C$ at query time, but the
+$D$-first ordering keeps $(u, v)$ absent from $A$, $B$, $C$
+throughout the query window. The four vertices are therefore
+distinct, and the bijection follows.
 \end{proof}
 
 \subsection{Consequence}
@@ -542,7 +635,7 @@ through a new edge $(u, v)$ is exactly the layered $3$-walk count
 delivered by the lifted instance under the protocol of
 Section~\ref{sec:reduction:lifting}, and the lift incurs only a
 constant blow-up in the number of layered updates per
-general-graph update. The warm-up algorithm of
+general-graph update. The restricted algorithm of
 Section~\ref{sec:warmup} therefore works directly on a $4$-layered
 graph with biadjacency matrices $A, B, C, D$. The simple $O(n)$
 baseline of Section~\ref{sec:simple} is presented in the original
@@ -605,7 +698,7 @@ the wedge-count matrix~$W$.
       \State $C \gets C + \Delta$
       \For{$w \in N(u)$} $W[w, v]\mathrel{+}= 1$; $W[v, w]\mathrel{+}= 1$ \EndFor
       \For{$w \in N(v)$} $W[w, u]\mathrel{+}= 1$; $W[u, w]\mathrel{+}= 1$ \EndFor
-      \State add $(u,v)$ to $E$
+      \State add $(u,v)$ to $E$ \Comment{after query, to keep $W$ free of $(u,v)$ during query}
     \EndProcedure
     \Procedure{Delete}{$u, v$}
       \State remove $(u,v)$ from $E$
@@ -625,7 +718,7 @@ updated edge, and a \emph{maintenance} step that adjusts $W$ to
 reflect the new edge set. Both steps touch only the rows and
 columns indexed by neighbours of $u$ and $v$.
 
-The order in which these two steps are performed is load-bearing,
+The order in which these two steps are performed is critical,
 and is the general-graph specialisation of the update protocol of
 Section~\ref{sec:reduction:lifting}: in both settings the new edge
 must be \emph{absent} from the relevant data structure at the
@@ -639,8 +732,8 @@ identity~\eqref{eq:wedge-identity}. On an
 procedure starts, so the query is evaluated \emph{first}, and only
 afterwards is $W$ updated to record the wedges newly created through
 the inserted edge. On a \textsc{Delete}, the edge $(u, v)$ is still
-in $E$ at the start, so $W$ is updated \emph{first}---removing the
-wedges that used $(u, v)$---and the query is evaluated only once
+in $E$ at the start, so $W$ is updated \emph{first}, removing the
+wedges that used $(u, v)$, and the query is evaluated only once
 those wedges are gone. In both cases, $W$ at query time encodes
 only wedges of the graph $G \setminus \{(u,v)\}$, which is what
 identity~\eqref{eq:wedge-identity} requires.
@@ -653,60 +746,30 @@ identity~\eqref{eq:wedge-identity} requires.
 \label{lem:simple}
 %% Originally \cite{AssadiShah25} Lemma A.1; restated as our own with attribution
 %% in the proof to avoid the paper-report framing (F4).
-Algorithm~\ref{alg:simple} maintains the exact 4-cycle count of any fully dynamic graph in worst-case update time $O(n)$.
+Algorithm~\ref{alg:simple} maintains the exact 4-cycle count of any fully dynamic graph in worst-case update time $O(n)$, where $n = |V|$ is the (fixed) vertex count.
 \end{lemma}
 
-\begin{proof}
-We argue maintenance and counting separately~\cite{AssadiShah25}.
+\begin{proof}[Proof sketch]
+\emph{Complexity.} Each update modifies only the rows of $W$
+indexed by neighbours of $u$ and $v$, touching at most
+$|N(u)| + |N(v)| \le 2n$ entries; the query is an inner product of
+length $|N(u)|$. Total: $O(n)$ per update.
 
-\emph{(a) Maintenance.} Each update modifies only the entries
-$W[w, v]$ and $W[v, w]$ for $w \in N(u)$, and $W[w, u]$ and
-$W[u, w]$ for $w \in N(v)$. The four loops in
-Algorithm~\ref{alg:simple} therefore touch at most
-$|N(u)| + |N(v)| \le 2n$ entries of $W$, each in constant time, so
-the maintenance step costs $O(n)$ per update.
-
-\emph{(b) Counting through the new edge.} The query computes
-\[
-  \Delta \;=\; \sum_{w \in N(u)} W[w, v]
-       \;=\; \sum_{w \in N(u)} \;\sum_{x \,:\, w\text{-}x\text{-}v \text{ a wedge}} 1,
-\]
-where the inner sum ranges over wedge midpoints $x$ between $w$ and
-$v$. This is the number of \emph{walks} $u, w, x, v$ in the graph
-recorded by $W$ at query time. We must show that every such walk
-is in fact a path, i.e.\ that $u, w, x, v$ are four distinct
-vertices.
-
-Note first that $u \neq v$ since the update concerns a non-loop edge.
-We must rule out the five remaining equalities $w \in \{u, v\}$ and
-$x \in \{u, v, w\}$.
-Three of these are excluded by simplicity of $G$: $w \neq u$ because
-$w \in N(u)$, and $x \neq w$ and $x \neq v$ because $W[w, v]$ counts
-wedges $w$--$x$--$v$ with two distinct edges (no self-loops).
-The remaining two---$w \neq v$ and $x \neq u$---both rely on the
-fact that $(u, v) \notin E$ at query time. This holds in both update
-modes: on an insertion the edge has not yet been added, while on a
-deletion it has already been removed. Consequently $v \notin N(u)$,
-which forces $w \neq v$, and any wedge of the form $w$--$u$--$v$
-would require the absent edge $(u, v) \in E$, so it cannot contribute
-to $W[w, v]$ at query time, ruling out $x = u$.
-
-All four vertices are therefore distinct, so each walk counted by
-$\Delta$ is a length-$3$ path from $u$ to $v$. Conversely, every
-length-$3$ path $u, w, x, v$ in the query-time graph contributes
-exactly once: it appears in the unique summand of
-identity~\eqref{eq:wedge-identity} indexed by its first hop $w$, in
-which the wedge $w$--$x$--$v$ is one of the $W[w, v]$ counted
-configurations. The map between length-$3$ paths and counted walks
-is therefore a bijection, and $\Delta$ is the correct increment to
-the $4$-cycle count.
-
-Combining (a) and (b), each update performs $O(n)$ work for
-maintenance and $O(|N(u)|) = O(n)$ work for the query, for a total
-worst-case update time of $O(n)$.
+\emph{Correctness.} The query computes the number of \emph{walks}
+$u, w, x, v$ recorded in $W$ at query time. The five potential
+vertex collisions $w \in \{u, v\}$ and $x \in \{u, v, w\}$ are
+ruled out as follows: simplicity of $G$ excludes
+$w = u$, $x = w$, and $x = v$; the timing rule of
+Section~\ref{sec:simple:algorithm} keeps $(u, v) \notin E$ at query
+time, which excludes $w = v$ and $x = u$ (each would require the
+absent edge to be present in $W$). Every counted walk is therefore
+a length-$3$ path from $u$ to $v$, and conversely every such path
+is counted exactly once by the unique $w \in N(u)$ that witnesses
+its first hop. See~\cite[App.~A]{AssadiShah25} for the full case
+analysis.
 \end{proof}
 
-\subsection{Why $O(n)$ is not enough}
+\subsection{Limitations of the $O(n)$ bound}
 \label{sec:simple:limitation}
 %% SECTIONS.md §4.4. Paper §1 p.3 "We now want to get the update time...".
 %% Tight for sparse graphs; loose for dense; memory n^2.
@@ -721,36 +784,43 @@ bound is loose: when $n^2 = \omega(m)$, an update time of $O(n)$
 can be much larger than any reasonable function of $m$, and the
 algorithm performs work that is not justified by the size of the
 current graph. A second, practical, drawback is the memory
-footprint: the wedge matrix $W$ has $n^2$ entries, which is
-manageable for graphs with a few thousand vertices but becomes
-prohibitive at the scale of modern social and web graphs, regardless
-of how sparse they are.
+footprint: the wedge matrix $W$ has $n^2$ entries, $\approx 16$~MB
+at $n = 2000$ with 32-bit counters but $\approx 4$~GB at
+$n = 32{,}000$ regardless of edge density, becoming prohibitive
+at the scale of modern social and web graphs.
 
 These two shortcomings motivate the search for an algorithm whose
 update time is bounded purely as a function of the current edge
 count $m$. The first such bound was the $O(m^{2/3})$ algorithm
 of~\cite{HHH22}, which already uses a wedge-based approach as its
 starting point but partitions vertices by degree to break the
-$O(n)$ barrier. Section~\ref{sec:warmup} develops the warm-up
+$O(n)$ barrier. Section~\ref{sec:warmup} develops the restricted
 algorithm of~\cite{AssadiShah25}, whose update time is
 $O(m^{2/3-\varepsilon_1})$ under simplifying assumptions and which
 is the building block for the $O(m^{2/3-\varepsilon})$ result that
 finally crosses the $m^{2/3}$ threshold.
 
 %% =========================================================================
-\section{The warm-up algorithm}
+\section{A restricted variant: fixed $A$ and $C$}
 \label{sec:warmup}
-%% Owner: C. ~3 pages. SECTIONS.md "§5". Includes PROOF 3.
-%% Paper §3 (entire), pages 7--12.
+
+This section presents the restricted variant of the
+Assadi-Shah algorithm: a stripped-down version that already
+contains the central trick (precomputed FMM products combined with
+class-restricted iteration) but in which two of the four
+biadjacency matrices are frozen and two simplifying assumptions
+are imposed. The de-assumption machinery, occupying §6 and §7
+of~\cite{AssadiShah25}, is left out of scope; we sketch the move
+from the restricted variant to the full algorithm in
+Section~\ref{sec:phases}.
 
 \subsection{Setup and assumptions}
 \label{sec:warmup:setup}
 %% SECTIONS.md §5.1. Paper §3.1 p.7-8, Assumptions 1, 2, 3 on p.8, Lemma 3.1 p.8.
-The warm-up algorithm of~\cite{AssadiShah25} solves a restricted
-version of the layered counting problem in which two of the four
-biadjacency matrices are frozen. Concretely, we assume that the
-edge updates affect only $B$ and $D$, while $A$ and $C$ are fixed
-in advance. By symmetry it suffices to handle the query case in
+The restricted variant of~\cite{AssadiShah25} solves a simplified
+form of the layered counting problem in which two of the four
+biadjacency matrices are frozen: edge updates affect only $B$ and
+$D$, while $A$ and $C$ are fixed in advance. By symmetry it suffices to handle the query case in
 which the latest update is to $D$ and we count new $4$-cycles by
 counting $3$-paths from $u\in L_1$ to $v\in L_4$ through
 $A$, $B$, $C$.
@@ -792,7 +862,7 @@ for the four submatrices of $B_i$ obtained by restricting both
 endpoints by class. The previous $O(m^{2/3})$
 algorithm~\cite{HHH22} used only two outer classes (high and low);
 the third, medium, class is what makes room for a rectangular FMM
-product in the warm-up~\cite{AssadiShah25}, since it lets the dense
+product in the restricted algorithm~\cite{AssadiShah25}, since it lets the dense
 case ($A^{L*}\!\cdot B_{i,DD}$) sit on dimensions that current
 rectangular bounds can exploit.
 
@@ -841,7 +911,7 @@ editing earlier chunks.
                           & and three symmetric products with $C^{*L}$ \\
     \bottomrule
   \end{tabular}
-  \caption{Data structures maintained by the warm-up algorithm. Adapted from~\cite{AssadiShah25}, Table~1.}
+  \caption{Data structures maintained by the restricted algorithm. Adapted from~\cite{AssadiShah25}, Table~1.}
   \label{tab:datastructures}
 \end{table}
 
@@ -850,7 +920,7 @@ across the three outer-layer classes, all evaluated against the
 chunk-aggregate $B_{<i}$. Each such product encodes the count of
 two- or three-hop paths between the indicated vertex classes. For
 example, $A^{H*}\!\cdot B_{<i}$ records, for every High vertex
-$u\in L_1$ and every $z\in L_3$, the number of $L_1$--$L_2$--$L_3$
+$u\in L_1$ and every $z\in L_3$, the number of $L_1$-$L_2$-$L_3$
 wedges from $u$ to $z$ that use only edges of completed chunks.
 In database terminology this is a select-project-aggregate over the
 join $A\bowtie B$ restricted to $L_1^H$. The triple product
@@ -869,15 +939,49 @@ once per chunk via FMM.
 The worst-case time to update all data structures in Table~\ref{tab:datastructures} is $O(m^{2/3-\varepsilon_1})$ per update, with $O(m^{4/3-2\varepsilon_1})$ amortized over chunk transitions.
 \end{lemma}
 
-\subsection{Worked example: the FMM step}
-\label{sec:warmup:fmm}
-%% SECTIONS.md §5.5. Paper Claim 3.6 p.10 + Eq (5).
-%% Numeric solution paper §3.4 p.12 (eps_1 = 0.04201965, eps_2 = 0.14568075).
-%% Verified in Appendix B p.36-37.
+\subsection{Answering queries}
+\label{sec:warmup:queries}
+With the data structures of Table~\ref{tab:datastructures} in place,
+a query $(u, v)$ with $u \in L_1$, $v \in L_4$ is answered by case
+analysis on the classes of $u$ and $v$~\cite[Lemma~3.8]{AssadiShah25}.
+\begin{description}
+  \item[Both High.] The precomputed triple product
+    $A^{H*}\!\cdot\!B_{<i}\!\cdot\!C^{*H}$ stores the $3$-path count
+    between every pair of High endpoints, so the answer is read off
+    in $O(1)$.
+  \item[Mixed (HM, ML, HL, MM).] We iterate over the at most
+    $2m^{2/3-\varepsilon_1}$ neighbours of the lower-class endpoint
+    and look up two-hop counts in $A^{H*}\!\cdot\!B_{<i}$ or
+    $A^{M*}\!\cdot\!B_{<i}$, paying $O(m^{2/3-\varepsilon_1})$ per
+    query.
+  \item[Both Low.] We iterate over the
+    $2m^{1/3+\varepsilon_1}$ neighbours of $v$ and combine DD, SS,
+    SD contributions from the stored Low-class products, with the
+    DS contribution computed symmetrically on $u$'s side via
+    $B_{i,DS}\!\cdot\!C^{*L}$. Cost: $O(m^{1/3+\varepsilon_1})$.
+\end{description}
+Lazy evaluation handles edges of the active chunks $B_i$, $B_{i+1}$
+in an additional $O(m^{2/3-\varepsilon_1})$ time. Combining these
+bounds with Lemma~\ref{lem:warmup-update} yields the main statement
+of the restricted variant: under Assumptions~1--3, $4$-cycles in a
+fully dynamic $4$-layered graph can be counted in worst-case time
+$O(m^{2/3-\varepsilon_1})$.
 
-\begin{theorem}[Cost of the rectangular FMM step]
+%% =========================================================================
+\section{The FMM step and the constraint system}
+\label{sec:fmm}
+
+The restricted algorithm relies on a single nontrivial use of fast
+matrix multiplication: the dense-block product
+$A^{L*}\!\cdot\!B_{i,DD}$, evaluated once per chunk transition. Its
+cost is determined by a rectangular FMM call whose dimensions are
+fixed by the size of $L_1$ and the dense subset of $L_2$.
+
+\subsection{Cost of the rectangular FMM step}
+\label{sec:fmm:step}
+
+\begin{theorem}[Cost of the rectangular FMM step~{\cite[Claim~3.6]{AssadiShah25}}]
 \label{thm:fmm-step}
-%% Originally \cite{AssadiShah25} Claim 3.6.
 The matrix product $A^{L*}\!\cdot\!B_{i,DD}$ can be computed in time
 $m^{\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}}$.
 \end{theorem}
@@ -904,38 +1008,42 @@ $m^{\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\
 by definition of the rectangular FMM exponent~\cite{ADW25}. \qedhere
 \end{proof}
 
-This is the only step in the warm-up that genuinely uses fast
-matrix multiplication, and it is the step that constrains the
-parameters. Charging the cost against the per-chunk budget
-$m^{4/3-2\varepsilon_1}$ from Lemma~\ref{lem:warmup-update} yields
-the inequality
+\subsection{The constraint system}
+\label{sec:fmm:constraints}
+
+Charging the cost of Theorem~\ref{thm:fmm-step} against the per-chunk
+budget $m^{4/3-2\varepsilon_1}$ from Lemma~\ref{lem:warmup-update}
+yields the inequality
 \begin{equation}\label{eq:warmup-fmm}
 \rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}
 \;\le\; 4/3 - 2\varepsilon_1,
 \end{equation}
-which is exactly the constraint that forces $\varepsilon_1$ to be
-strictly positive. The warm-up has its own internal slack parameter,
-also called $\varepsilon$ (paper Assumption~1, $|L_i| \le m^{2/3+2\varepsilon}$);
-this is distinct from the headline $\varepsilon$ of
-Theorem~\ref{thm:main-paper}, although the parameter assignment
-of Lemma~\ref{lem:feasibility} sets both to $1/24$ at $\omega = 2$. With the current best rectangular bounds
-of~\cite{ADW25} the warm-up system is feasible at
-$\varepsilon_1 \approx 0.0420$, $\varepsilon_2\approx 0.1457$, and
-$\varepsilon \approx 0.0098$ (paper Appendix~B). The closed-form
-certificate below covers only the conjectured optimum $\omega = 2$,
-where the constraints reduce to checkable rationals.
+which is the constraint that forces $\varepsilon_1$ to be strictly
+positive. Together with the High-High analogue and three threshold
+orderings, the full system is
+\begin{align*}
+&\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}
+   \le 4/3 - 2\varepsilon_1, \\
+&\rfmm{1/3+\varepsilon_1}{2/3-\varepsilon_1}{1/3+\varepsilon_1}
+   \le 4/3 - 2\varepsilon_1, \\
+&3\varepsilon_1 + 2\varepsilon \le \varepsilon_2, \quad
+  \varepsilon_1 \le 1/6, \quad
+  \varepsilon_1 - \varepsilon_2 \le 1/3,
+\end{align*}
+corresponding to Equations~(5), (2), (6), (7), (8)
+of~\cite[\S 3.4]{AssadiShah25}. With the current rectangular FMM
+bounds of~\cite{ADW25} the system is feasible at
+$\varepsilon_1 \approx 0.0420$, $\varepsilon_2 \approx 0.1457$, and
+$\varepsilon \approx 0.0098$ (paper Appendix~B). The next subsection
+gives a clean closed-form solution at the conjectural optimum
+$\omega = 2$.
 
-The warm-up constraint system consists of inequality~\eqref{eq:warmup-fmm}, its High--High analogue
-$\rfmm{1/3+\varepsilon_1}{2/3-\varepsilon_1}{1/3+\varepsilon_1} \le 4/3 - 2\varepsilon_1$,
-and the threshold orderings
-$3\varepsilon_1 + 2\varepsilon \le \varepsilon_2$,
-$\varepsilon_1 \le 1/6$, and
-$\varepsilon_1 - \varepsilon_2 \le 1/3$
-(corresponding to Equations (5), (2), (6), (7), (8) of~\cite[\S 3.4]{AssadiShah25}, in that order).
+\subsection{Closed-form feasibility at \texorpdfstring{$\omega = 2$}{omega = 2}}
+\label{sec:fmm:closed-form}
 
 \begin{lemma}[Closed-form feasibility at $\omega = 2$]
 \label{lem:feasibility}
-Under the hypothetical $\omega = 2$, the warm-up constraint system above admits the solution
+Under the hypothetical $\omega = 2$, the constraint system above admits the solution
 $\varepsilon_1 = 1/24$, $\varepsilon_2 = 5/24$, $\varepsilon = 1/24$.
 \end{lemma}
 
@@ -945,18 +1053,17 @@ and the rectangular exponent collapses to
 $\rfmm{a}{b}{c} = \max(a+b,\,b+c,\,a+c)$, the cost of merely reading
 the largest pair of factors. We verify each constraint in turn.
 
-\emph{Threshold ordering}, $\varepsilon_1 \le 1/6$ (paper Eq.~(7)):
-$1/24 < 4/24 = 1/6$. \checkmark
-
+\emph{Threshold ordering}, $\varepsilon_1 \le 1/6$ (constraint~(7)
+of~\cite{AssadiShah25}): $1/24 < 4/24 = 1/6$.
 \emph{Threshold ordering}, $\varepsilon_1 - \varepsilon_2 \le 1/3$
-(paper Eq.~(8)): $1/24 - 5/24 = -4/24 < 1/3$. \checkmark
-
-\emph{Sparse--Sparse / Sparse--Dense iteration},
-$3\varepsilon_1 + 2\varepsilon \le \varepsilon_2$ (paper Eq.~(6)):
+(constraint~(8) of~\cite{AssadiShah25}): $1/24 - 5/24 = -4/24 < 1/3$.
+\emph{Sparse-Sparse / Sparse-Dense iteration},
+$3\varepsilon_1 + 2\varepsilon \le \varepsilon_2$ (constraint~(6)
+of~\cite{AssadiShah25}):
 $3\cdot \tfrac{1}{24} + 2\cdot \tfrac{1}{24} = \tfrac{5}{24} = \varepsilon_2$,
-so the constraint holds with equality. \checkmark
-
-\emph{Low--Dense FMM}, Eq.~\eqref{eq:warmup-fmm} (paper Eq.~(5)):
+so the constraint holds with equality.
+\emph{Low-Dense FMM}, our Eq.~\eqref{eq:warmup-fmm} (constraint~(5)
+of~\cite{AssadiShah25}):
 substitute $a = 2/3 + 2\varepsilon = 2/3 + 1/12 = 3/4$ and
 $b = c = 1/3 - \varepsilon_1 + \varepsilon_2 = 1/3 + 4/24 = 1/2$.
 Then
@@ -967,9 +1074,8 @@ Then
 \]
 The right-hand side is
 $4/3 - 2\varepsilon_1 = 4/3 - 1/12 = 16/12 - 1/12 = 15/12 = 5/4$,
-so the constraint is satisfied with equality. \checkmark
-
-\emph{High--High product} (paper Eq.~(2)),
+so the constraint is satisfied with equality.
+\emph{High-High product} (constraint~(2) of~\cite{AssadiShah25}),
 $\rfmm{1/3+\varepsilon_1}{2/3-\varepsilon_1}{1/3+\varepsilon_1} \le 4/3-2\varepsilon_1$:
 the dimensions evaluate to $a = c = 9/24 = 3/8$ and
 $b = 15/24 = 5/8$. At $\omega = 2$,
@@ -978,64 +1084,30 @@ $b = 15/24 = 5/8$. At $\omega = 2$,
 \tfrac{5}{8}+\tfrac{3}{8},\, \tfrac{3}{8}+\tfrac{3}{8}\big) = 1
 \;\le\; 5/4 = 4/3 - 2\varepsilon_1,
 \]
-verified by the same method as Eq.~\eqref{eq:warmup-fmm}. \checkmark
-
+verified by the same method as our Eq.~\eqref{eq:warmup-fmm}.
 All five constraints are satisfied, so the proposed assignment is
 feasible.
 \end{proof}
 
-The verification highlights why the warm-up needs FMM at all:
-constraints~\eqref{eq:warmup-fmm} and (paper Eq.~(2)) are the only
-ones in the system that are not trivially linear, and without a
-sub-cubic $\omega$ they would force $\varepsilon_1 = 0$. At
-$\omega = 2$ they bind tightly, as the equality
-$\rfmm{3/4}{1/2}{1/2} = 5/4 = 4/3 - 2\varepsilon_1$ shows.
+The verification highlights why FMM is essential. The two FMM
+constraints (constraints~(2) and~(5) of~\cite{AssadiShah25}, the
+latter our Eq.~\eqref{eq:warmup-fmm}) bind tightly at $\omega = 2$,
+while the three threshold orderings (constraints~(6), (7), (8))
+have slack; without a sub-cubic exponent the FMM constraints would
+force $\varepsilon_1 = 0$.
 Appendix~B of~\cite{AssadiShah25} carries out the analogous
-verification with the current numerical bounds and confirms a
-strictly positive slack.
-
-\subsection{Pulling it together}
-\label{sec:warmup:queries}
-%% SECTIONS.md §5.6. Paper §3.3 Queries p.11-12, Lemma 3.8.
-%% Forward-reference §6.
-With the data structures in Table~\ref{tab:datastructures} in place,
-a query $(u,v)$ with $u\in L_1, v\in L_4$ is answered by case
-analysis on the classes of $u$ and $v$~\cite[Lemma~3.8]{AssadiShah25}.
-If both endpoints are High, the precomputed triple product
-$A^{H*}\!\cdot B_{<i}\!\cdot C^{*H}$ supplies the answer in $O(1)$.
-If exactly one endpoint is High or Medium and the other is Medium
-or Low (the cases HM, ML, HL, MM), we iterate over the at most
-$2m^{2/3-\varepsilon_1}$ neighbours of the lower-class endpoint and
-look up two-hop counts in $A^{H*}\!\cdot B_{<i}$ or
-$A^{M*}\!\cdot B_{<i}$, paying $O(m^{2/3-\varepsilon_1})$. The
-LL case is the most delicate: we iterate over the
-$2m^{1/3+\varepsilon_1}$ neighbours of $v$ and compute DD, SS, SD
-contributions from the stored low-class products, with the DS
-contribution computed symmetrically from $u$'s side using
-$B_{i,DS}\!\cdot C^{*L}$, giving $O(m^{1/3+\varepsilon_1})$. Lazy
-evaluation handles edges of the active chunks $B_i, B_{i+1}$ in
-$O(m^{2/3-\varepsilon_1})$ additional time. Combining these bounds
-with Lemma~\ref{lem:warmup-update} yields the warm-up theorem
-informally: under Assumptions~1--3, $4$-cycles in a fully dynamic
-$4$-layered graph can be counted in worst-case time
-$O(m^{2/3-\varepsilon_1})$.
+verification with the current numerical bounds of~\cite{ADW25}
+and confirms a strictly positive slack.
 
 %% =========================================================================
-%% F7+F8: The standalone "phases" section was cut to free ~0.75 page of budget.
-%% A condensed version of its content (the surprise about omega < 2.5 - O(eps),
-%% a one-paragraph sketch of phases, and the restatement of Theorem 1 of the
-%% paper) is folded below as a single subsection at the end of the warm-up.
-%% Move the discussion of phase machinery to Section~\ref{sec:conclusion} if
-%% you reclaim space later.
-
-\subsection{From warm-up to the full theorem (sketch)}
-\label{sec:warmup:phases}
+\section{Phases and the full algorithm}
+\label{sec:phases}
 %% Replaces the old standalone Section 6 (~0.75 page). SECTIONS.md §6.1--§6.5.
 %% Paper §5 p.14, §5.1 p.15, §1 p.2.
 %% F13: write "omega < 2.5 - O(eps)", not just "omega < 2.5".
 %% F14: be explicit -- we do NOT prove this theorem; it is the source paper's.
-The warm-up algorithm leans hard on the fact that $A$ and $C$ are
-frozen: the running aggregate
+The restricted algorithm relies critically on the fact that $A$
+and $C$ are frozen: the running aggregate
 $A^{L*}\!\cdot B_{<i,DD} = A^{L*}\!\cdot B_{<i-1,DD}
 + A^{L*}\!\cdot B_{i-1,DD}$ that drives the chunk machinery only
 makes sense when the left factor does not change. Once $A$ also
@@ -1043,15 +1115,30 @@ receives updates, this telescoping breaks down and the FMM step has
 to be redesigned.
 
 The full algorithm of~\cite{AssadiShah25} replaces chunks with
-\emph{phases} of size $m^{1-\delta}$ for a constant $\delta>0$. A
-phase is large enough that, in the time it takes to process its
-$m^{1-\delta}$ updates, one can multiply two square matrices of
-dimension $m^{2/3+2\varepsilon}$ using fast matrix multiplication
-and store all-pairs path counts for the now-frozen previous phase.
-Queries then combine information from the new phase, the previous
-phase (whose matrix products are complete), and the older phases
-(handled in bulk). The cost analysis in~\cite[\S4]{AssadiShah25}
-distills to
+\emph{phases} of size $m^{1-\delta}$ for a constant $\delta>0$.
+The mechanism splits each phase into three concurrent activities,
+all sharing the per-update budget of $m^{2/3-\varepsilon}$:
+\begin{description}
+  \item[Slow path during the phase.] Queries are answered using the
+        precomputed products of the \emph{previous} phase, combined
+        with on-the-fly evaluation against the updates accumulated
+        so far in the current phase. Each such query costs
+        $O(m^{2/3-\varepsilon})$ in the worst case.
+  \item[FMM precomputation in parallel.] During the
+        $m^{1-\delta}$ updates of the current phase, the algorithm
+        amortises a single multiplication of two square matrices of
+        dimension $m^{2/3+2\varepsilon}$ across the phase. The
+        per-update share is $(m^{2/3+2\varepsilon})^\omega /
+        m^{1-\delta}$ time, which the constraint below forces to be
+        $O(m^{2/3-\varepsilon})$.
+  \item[Roll-forward at phase boundaries.] When the phase ends, the
+        freshly computed products become the new ``previous-phase''
+        data structure, and a new phase begins.
+\end{description}
+Because the per-update cost of every concurrent activity is
+$O(m^{2/3-\varepsilon})$ on every update, not merely on
+average, the resulting bound is worst-case. The cost analysis
+in~\cite[\S4]{AssadiShah25} distills to the single inequality
 \[
 1 - \delta \;\ge\; (2\omega+1)\,\varepsilon + (\omega-1)\,\tfrac{2}{3},
 \]
@@ -1075,11 +1162,11 @@ There is an algorithm for counting 4-cycles in any fully dynamic graph in worst-
 %% only -- the full assembly (paper Sections 4--7) is referenced, not reproved.
 We restate Theorem~\ref{thm:main-paper} verbatim
 from~\cite{AssadiShah25} and do \emph{not} reprove it. Its proof
-combines the warm-up of this section, the phase machinery sketched
+combines the restricted algorithm of this section, the phase machinery sketched
 above, the removal of Assumption~1 via tiny-vertex
 handling~\cite[\S6]{AssadiShah25}, and the removal of Assumption~2
 via vertex-class transitions~\cite[\S7]{AssadiShah25}, none of
-which we reproduce. Our formal contribution in this essay is
+which we reproduce. The formal contribution of this paper is
 limited to Theorem~\ref{thm:lifting} (the general-to-layered
 reduction), Lemma~\ref{lem:simple} (the $O(n)$ baseline),
 Theorem~\ref{thm:fmm-step} (the rectangular FMM step), and
@@ -1096,7 +1183,7 @@ at $\omega = 2$).
 \label{sec:experiments:setup}
 %% SECTIONS.md §7.1. Algorithm: Lemma A.1. Languages: Python+numpy (Go fallback).
 We describe the experimental design here; full results
-will appear in the final version of this essay. Two algorithms are compared.
+will appear in the final version of this paper. Two algorithms are compared.
 \textsc{Simple-Wedge} is a direct implementation of
 Algorithm~\ref{alg:simple}, maintaining a wedge-count matrix $W$ in dense
 \texttt{numpy} storage and answering queries by an inner product over
@@ -1110,7 +1197,7 @@ since the asymptotic improvement of~\cite{AssadiShah25} over~\cite{HHH22} is
 exactly what this baseline cannot see.
 The implementation uses Python~3.11 with NumPy on a single workstation
 (CPU and RAM specifications are TBD). Synthetic inputs are
-Erd\H{o}s--R\'enyi $G(n,p)$ graphs at three densities,
+Erd\H{o}s-R\'enyi $G(n,p)$ graphs at three densities,
 with $n \in \{200, 500, 1000, 2000\}$ for both algorithms and an additional
 $n = 5000$ point for \textsc{Simple-Wedge} only, where
 \textsc{Naive-Recompute} becomes infeasible in pure Python.
@@ -1146,7 +1233,7 @@ into Algorithm~\ref{alg:simple}.
   \centering
   % \includegraphics[width=\columnwidth]{figures/fig3-update-time}
   \framebox[\columnwidth]{\rule{0pt}{8em}\textsc{Fig 3 placeholder}}
-  \caption{Median per-update time vs.\ $n$ (log--log) for Simple-Wedge and Naive-Recompute at three densities.}
+  \caption{Median per-update time vs.\ $n$ (log-log) for Simple-Wedge and Naive-Recompute at three densities.}
   \label{fig:update-time}
 \end{figure}
 
@@ -1173,7 +1260,7 @@ into Algorithm~\ref{alg:simple}.
 \end{table}
 
 Figure~\ref{fig:update-time} (forthcoming) plots median per-update time
-against $n$ on log--log axes, with one curve per (algorithm, density)
+against $n$ on log-log axes, with one curve per (algorithm, density)
 pair. We expect the \textsc{Simple-Wedge} curves to track a slope-one
 line, in agreement with the $O(n)$ bound established in
 Lemma~\ref{lem:simple}: each insertion or deletion touches
@@ -1207,15 +1294,15 @@ does not scale to that size in pure Python.
 \label{sec:experiments:theory}
 %% SECTIONS.md §7.4. Caveat: we don't implement warm-up §5; only Simple-Wedge.
 We stress that this study benchmarks only \textsc{Simple-Wedge}. We do
-\emph{not} implement the warm-up algorithm of
+\emph{not} implement the restricted algorithm of
 Section~\ref{sec:warmup}, whose key step
 (Theorem~\ref{thm:fmm-step}) requires both chunked maintenance with
 amortised reconciliation across phases and a competitive rectangular
 fast matrix multiplication routine. Building such a system to a
 trustworthy standard is a multi-week engineering effort and falls
-outside the scope of an exposition essay. Within this scope, the
+outside the scope of an expository paper. Within this scope, the
 forthcoming numbers are intended to confirm two qualitative
-predictions of Section~\ref{sec:simple}: that dynamic wedge maintenance
+predictions of Section~\ref{sec:simple}: that dynamic wedge-maintenance
 becomes dramatically faster than recomputation once the update stream
 is long enough to amortise the matrix bookkeeping, and that the $O(n)$
 worst-case bound of Lemma~\ref{lem:simple} is loose on sparse graphs,
@@ -1229,53 +1316,58 @@ graph sizes one is likely to encounter in practice. We flag that as an
 open empirical direction.
 
 %% =========================================================================
-\section{Conclusion}
+\section{Conclusion and further work}
 \label{sec:conclusion}
-%% Owner: A. ~0.5 page. SECTIONS.md "§8".
 
-\subsection{What we did}
-\label{sec:conclusion:summary}
-%% SECTIONS.md §8.1. Synthesis.
-This essay revisited dynamic $4$-cycle counting through the lens of
-incremental view maintenance for the cyclic four-way join. After
-recasting the general-graph problem as the $4$-layered version,
-Theorem~\ref{thm:lifting} established the reduction by tracking how
-the layered update protocol turns counted $3$-walks into genuine
-$3$-paths. Lemma~\ref{lem:simple} then gave a complete correctness
-and complexity analysis of the wedge-maintenance algorithm whose
-$O(n)$ worst-case update time serves both as a pedagogical baseline
-and as the algorithm we benchmark.
-Section~\ref{sec:warmup} carried out the warm-up of~\cite{AssadiShah25}
-in which $A$ and $C$ are frozen, with a complete dimension analysis
-of the rectangular FMM step (Theorem~\ref{thm:fmm-step}) and a
-closed-form algebraic certificate (Lemma~\ref{lem:feasibility}) that
-the full constraint system admits a strictly positive $\varepsilon_1$
-at the conjectural $\omega = 2$. We sketched how phases lift this
-warm-up to the full $O(m^{2/3-\varepsilon})$ result of
-Theorem~\ref{thm:main-paper}, which we restated but did not reprove,
-and we instantiated and benchmarked the simple algorithm against
-naive recomputation in Section~\ref{sec:experiments}.
+We presented the recent algorithm of Assadi and Shah for
+dynamic $4$-cycle counting through the lens of incremental view
+maintenance for the cyclic four-way join. We surveyed the line of
+work culminating in their result (Section~\ref{sec:related}),
+recalled the layered reduction that lets us study the problem on a
+$4$-layered graph (Section~\ref{sec:reduction}), presented a simple
+$O(n)$ wedge-maintenance baseline (Section~\ref{sec:simple}), and
+exposed the conceptual core of the Assadi-Shah algorithm: the
+vertex-class partition with its precomputed FMM products
+(Section~\ref{sec:warmup}), the rectangular FMM step that drives
+the parameter trade-off (Section~\ref{sec:fmm}), and the phase
+mechanism that turns those precomputed products into a worst-case
+guarantee (Section~\ref{sec:phases}).
 
-\subsection{Open questions}
-\label{sec:conclusion:open}
-%% SECTIONS.md §8.2. Paper §1 p.2 (the gap discussion); §1 p.3 (IVM-with-FMM as a direction).
-%% Three threads: closing the m^{1/2} -- m^{2/3} gap; FMM in other IVM problems;
-%% practical FMM constants.
-Three threads stand out. First, the gap between the
+Our formal contribution is
+Lemma~\ref{lem:feasibility}: a closed-form algebraic certificate
+that the constraint system at the heart of the restricted
+algorithm is feasible at the conjectural optimum $\omega = 2$,
+with explicit rational parameters $\varepsilon_1 = 1/24$,
+$\varepsilon_2 = 5/24$, and $\varepsilon = 1/24$. Where the source
+paper verifies feasibility numerically with the current
+rectangular FMM bounds~(Appendix~B of~\cite{AssadiShah25}), the
+$\omega = 2$ closed form makes interpretable why two of the
+five constraints (the rectangular FMM constraints) bind tightly
+and the others have slack; this clarifies which inequalities are
+the load-bearing parts of the parameter trade-off. The
+supporting dimension analysis (Theorem~\ref{thm:fmm-step}) is
+taken from the source paper. We benchmarked the baseline algorithm
+against naive recomputation in Section~\ref{sec:experiments}.
+
+We highlight three directions for further work. First, the gap between the
 $O(m^{2/3-\varepsilon})$ upper bound of~\cite{AssadiShah25} and the
 $\Omega(m^{1/2-\gamma})$ OMv-conditional lower bound
 of~\cite{HKNS15}: where on $[1/2, 2/3)$ does the truth lie? The OMv
-reduction passes through boolean matrix--vector products and so does
+reduction passes through boolean matrix-vector products and so does
 not rule out further FMM-based speedups, while~\cite{AssadiShah25}
 explicitly notes that a combinatorial $\Omega(m^{2/3})$ lower bound is
 not yet ruled out either, so the gap could close from either side.
 Second, IVM-with-FMM as a research direction: this is the first time
 fast matrix multiplication has been leveraged for join-size estimation
 in dynamic graphs, and the authors suggest the technique could
-inspire a new class of IVM algorithms~\cite{AssadiShah25}. Where else
-does FMM break a ``natural'' barrier in dynamic IVM---other cyclic
-joins, longer cycles, richer pattern queries? Third, on the empirical
-side, a faithful implementation of the warm-up with a competitive
+inspire a new class of IVM algorithms~\cite{AssadiShah25}. Where
+else does FMM break a ``natural'' barrier in dynamic IVM? Other
+cyclic joins, longer cycles, richer pattern queries? An adjacent
+direction is approximate counting under updates: \cite{Tetek22}
+combines sampling with FMM for static approximate triangle
+counting, and a dynamic counterpart would close a parallel gap to
+the one studied here. Third, on the empirical side, a faithful
+implementation of the restricted algorithm with a competitive
 rectangular FMM routine would test whether the constants
 of~\cite{ADW25} let the asymptotic improvement surface at realistic
 graph sizes; our benchmarks of the simple algorithm cannot speak to
