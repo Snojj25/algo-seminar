@@ -215,9 +215,9 @@ pressure point from complementary directions.
 five-inequality constraint system and give a closed-form
 certificate that the system is feasible at the conjectural optimum
 $\omega = 2$ (Lemma~\ref{lem:feasibility}); the certificate exposes
-\emph{which} constraints bind tight --- the two rectangular FMM
-constraints, not the threshold orderings --- and so isolates FMM as
-the load-bearing ingredient.
+\emph{which} constraint binds tight --- the rectangular FMM
+constraint, the only one of the five whose left-hand side depends
+on $\omega$ --- and so isolates FMM as the load-bearing ingredient.
 \emph{Empirically}, we benchmark a faithful-in-shape implementation
 of the restricted variant against a layer-aware wedge baseline
 (Section~\ref{sec:experiments}); the comparison locates the input
@@ -822,23 +822,9 @@ Algorithm~\ref{alg:simple} maintains the exact 4-cycle count of any fully dynami
 \end{lemma}
 
 \begin{proof}[Proof sketch]
-\emph{Complexity.} Each update modifies only the rows of $W$
-indexed by neighbours of $u$ and $v$, touching at most
-$|N(u)| + |N(v)| \le 2n$ entries; the query is an inner product of
-length $|N(u)|$. Total: $O(n)$ per update.
+\emph{Complexity.} Each update touches at most $|N(u)| + |N(v)| \le 2n$ entries of $W$; the query is an inner product of length $|N(u)|$. Total: $O(n)$ per update.
 
-\emph{Correctness.} The query computes the number of \emph{walks}
-$u, w, x, v$ recorded in $W$ at query time. The five potential
-vertex collisions $w \in \{u, v\}$ and $x \in \{u, v, w\}$ are
-ruled out as follows: simplicity of $G$ excludes
-$w = u$, $x = w$, and $x = v$; the timing rule of
-Section~\ref{sec:simple:algorithm} keeps $(u, v) \notin E$ at query
-time, which excludes $w = v$ and $x = u$ (each would require the
-absent edge to be present in $W$). Every counted walk is therefore
-a length-$3$ path from $u$ to $v$, and conversely every such path
-is counted exactly once by the unique $w \in N(u)$ that witnesses
-its first hop. See~\cite[App.~A]{AssadiShah25} for the full case
-analysis.
+\emph{Correctness.} The query counts \emph{walks} $u, w, x, v$ in $W$. Simplicity of $G$ rules out the collisions $w = u$, $x = w$, $x = v$; the timing rule of Section~\ref{sec:simple:algorithm} rules out $w = v$ and $x = u$ (each would need the absent edge $(u, v)$ in $W$). So every counted walk is a length-$3$ path, and each such path is counted exactly once. Full case analysis in~\cite[App.~A]{AssadiShah25}.
 \end{proof}
 
 \subsection{Limitations of the $O(n)$ bound}
@@ -846,31 +832,22 @@ analysis.
 %% SECTIONS.md §4.4. Paper §1 p.3 "We now want to get the update time...".
 %% Tight for sparse graphs; loose for dense; memory n^2.
 %% Motivates HHH22 and Assadi-Shah.
-The $O(n)$ bound of Lemma~\ref{lem:simple} is tight for sparse
-graphs in the worst case: when an update touches a vertex of degree
-$\Theta(n)$, every entry of the corresponding row of $W$ may need to
-be inspected. For sparse graphs with $m = \Theta(n)$ this matches
-the natural target of expressing the update time purely as a
-function of $m$, since $n = \Theta(m)$. For denser graphs the
-bound is loose: when $n^2 = \omega(m)$, an update time of $O(n)$
-can be much larger than any reasonable function of $m$, and the
-algorithm performs work that is not justified by the size of the
-current graph. A second, practical, drawback is the memory
-footprint: the wedge matrix $W$ has $n^2$ entries, $\approx 16$~MB
-at $n = 2000$ with 32-bit counters but $\approx 4$~GB at
-$n = 32{,}000$ regardless of edge density, becoming prohibitive
-at the scale of modern social and web graphs.
+The $O(n)$ bound is tight in the worst case (a high-degree update
+touches $\Theta(n)$ entries of $W$) and matches the natural
+$m$-dependent target only when $m = \Theta(n)$; on denser graphs
+the algorithm does work unrelated to the current edge count. A
+second, practical, drawback is the $n^2$-entry memory footprint:
+$\approx 16$\,MB at $n = 2000$ but $\approx 4$\,GB at
+$n = 32{,}000$ regardless of edge density.
 
-These two shortcomings motivate the search for an algorithm whose
-update time is bounded purely as a function of the current edge
-count $m$. The first such bound was the $O(m^{2/3})$ algorithm
-of~\cite{HHH22}, which already uses a wedge-based approach as its
-starting point but partitions vertices by degree to break the
-$O(n)$ barrier. Section~\ref{sec:warmup} develops the restricted
-algorithm of~\cite{AssadiShah25}, whose update time is
-$O(m^{2/3-\varepsilon_1})$ under simplifying assumptions and which
-is the building block for the $O(m^{2/3-\varepsilon})$ result that
-finally crosses the $m^{2/3}$ threshold.
+These two shortcomings motivate algorithms whose update time
+depends only on $m$. The first such bound was the $O(m^{2/3})$
+algorithm of~\cite{HHH22}, which extends the wedge-counting idea
+above with a degree-based vertex partition.
+Section~\ref{sec:warmup} develops the warm-up
+of~\cite{AssadiShah25}, whose update time is
+$O(m^{2/3-\varepsilon_1})$ under simplifying assumptions, and which
+is the building block for the full $O(m^{2/3-\varepsilon})$ bound.
 
 %% =========================================================================
 \section{A restricted variant: fixed $A$ and $C$}
@@ -889,53 +866,45 @@ Section~\ref{sec:phases}.
 \subsection{Setup and assumptions}
 \label{sec:warmup:setup}
 %% SECTIONS.md §5.1. Paper §3.1 p.7-8, Assumptions 1, 2, 3 on p.8, Lemma 3.1 p.8.
-The restricted variant of~\cite{AssadiShah25} solves a simplified
-form of the layered counting problem in which two of the four
-biadjacency matrices are frozen: edge updates affect only $B$ and
-$D$, while $A$ and $C$ are fixed in advance. By symmetry it suffices to handle the query case in
-which the latest update is to $D$ and we count new $4$-cycles by
-counting $3$-paths from $u\in L_1$ to $v\in L_4$ through
-$A$, $B$, $C$.
+In the restricted variant, edge updates affect only $B$ and $D$,
+while $A$ and $C$ are fixed in advance. By symmetry it suffices to
+handle the query case where the latest update is to $D$ and we
+count new $4$-cycles by counting $3$-paths from $u \in L_1$ to
+$v \in L_4$ through $A$, $B$, $C$.
 
-Two further structural assumptions support the analysis. First,
-the number of vertices in each layer satisfies
-$n \le m^{2/3+2\varepsilon}$, where $\varepsilon>0$ is a small
-constant fixed below; this rules out pathological layers that are
-much larger than the edge set warrants. Second, vertices do not
-migrate between degree classes during the algorithm; the bookkeeping
-needed to lift this assumption is the subject of a separate part of
-the source paper~\cite[\S6--7]{AssadiShah25} and is out of scope
-here. Under these assumptions the goal is a worst-case update time
-of $O(m^{2/3-\varepsilon_1})$ for some constant $\varepsilon_1>0$,
-matching the running time we will need when this algorithm is later
-invoked as a subroutine in the full result.
+Two simplifying assumptions support the analysis: (1) each layer
+has at most $m^{2/3+2\varepsilon}$ vertices (for a small constant
+$\varepsilon > 0$ fixed below), ruling out pathologically thin
+edge sets; (2) no vertex changes degree class during the algorithm.
+Both are discharged
+in~\cite[\S\S6--7]{AssadiShah25} and are out of scope here. The
+target update time is $O(m^{2/3-\varepsilon_1})$ for a constant
+$\varepsilon_1 > 0$, which is also what the full algorithm needs
+when this restricted variant is invoked as a subroutine.
 
 \subsection{Vertex degree classes}
 \label{sec:warmup:classes}
 %% SECTIONS.md §5.2. Paper §3.1 p.8 (H/M/L for L1,L4; S/D for L2,L3 per chunk).
 %% Notation A^{H*}, etc. paper p.8.
-The algorithm partitions vertices in the outer layers $L_1$ and $L_4$
-into three degree classes, measured against the (fixed) matrices
-$A$ and $C$ respectively. A vertex is \emph{High} (H) if its degree
-lies in $[m^{2/3-\varepsilon_1},\,n]$, \emph{Medium} (M) if it lies in
-$[m^{1/3+\varepsilon_1},\,2m^{2/3-\varepsilon_1}]$, and \emph{Low}
-(L) otherwise; the slight overlap between the M and H ranges keeps
-class boundaries on a single threshold rather than at an exact
-cutoff. We use $A^{H*}$, $A^{M*}$, $A^{L*}$ to denote the row-restrictions
-of $A$ to each class, and symmetrically $C^{*H}, C^{*M}, C^{*L}$ for
-column-restrictions of $C$.
+Outer-layer vertices (in $L_1$ and $L_4$) are partitioned by degree
+in the fixed matrices $A$ and $C$ respectively into three classes:
+\emph{High} (degree $\ge m^{2/3-\varepsilon_1}$), \emph{Low}
+(degree $\le m^{1/3+\varepsilon_1}$), and \emph{Medium} in between.
+A small overlap at the H/M boundary keeps the cut on a single
+threshold; details in~\cite[\S3.1]{AssadiShah25}. We write
+$A^{H*}, A^{M*}, A^{L*}$ for the row-restrictions of $A$ by class,
+and $C^{*H}, C^{*M}, C^{*L}$ for the column-restrictions of $C$.
 
-Inner-layer vertices in $L_2$ and $L_3$ are classified per chunk
+Inner-layer vertices (in $L_2, L_3$) are classified per chunk
 (\S\ref{sec:warmup:chunks}): inside chunk $B_i$, a vertex is
-\emph{Sparse} (S) if its degree in $B_i$ is at most
-$m^{1/3-\varepsilon_2}$ and \emph{Dense} (D) otherwise. We
-correspondingly write $B_{i,DD}, B_{i,SS}, B_{i,DS}, B_{i,SD}$
-for the four submatrices of $B_i$ obtained by restricting both
-endpoints by class. The previous $O(m^{2/3})$
-algorithm~\cite{HHH22} used only two outer classes (high and low);
-the third, medium, class is what makes room for a rectangular FMM
-product in the restricted algorithm~\cite{AssadiShah25}, since it lets the dense
-case ($A^{L*}\!\cdot B_{i,DD}$) sit on dimensions that current
+\emph{Dense} if its degree within that chunk exceeds
+$m^{1/3-\varepsilon_2}$, and \emph{Sparse} otherwise. The four
+chunk-submatrices $B_{i,DD}, B_{i,DS}, B_{i,SD}, B_{i,SS}$ are
+obtained by restricting both endpoints by class. The Medium class
+--- absent from the earlier $O(m^{2/3})$ algorithm
+of~\cite{HHH22} --- is what makes room for the rectangular FMM
+call: it gives the dense-block product
+$A^{L*}\!\cdot\!B_{i,DD}$ the asymmetric dimensions that current
 rectangular bounds can exploit.
 
 \subsection{Chunks and lazy maintenance}
@@ -943,29 +912,23 @@ rectangular bounds can exploit.
 %% SECTIONS.md §5.3. Paper §3.1 p.8 (chunks), §3.2 p.9 (lazy), §3.3 p.11 (lazy eval),
 %% §3.3 p.12 (negative-edge subtlety).
 %% State Lemma 3.2 (worst-case time accounting).
-The stream of edge updates to $B$ is grouped into \emph{chunks}
-$B_1, B_2,\dots$ of size $m^{2/3-\varepsilon_1}$, and we write
-$B_{<i} := \sum_{j<i} B_j$ for the aggregate of all completed chunks.
-Cheap data structures are maintained eagerly: each individual
-update touches only $O(m^{1/3+\varepsilon_1})$ rows or columns, well
-within budget. Expensive data structures, the matrix products that
-require fast matrix multiplication, are not affordable per-update;
-we instead compute them once per chunk and amortize. Concretely,
-the products needed for chunk $B_i$ are computed during the
-$m^{2/3-\varepsilon_1}$ updates of the next chunk $B_{i+1}$, using
-a budget of $O(m^{4/3-2\varepsilon_1})$ total work and therefore
-$O(m^{2/3-\varepsilon_1})$ per update.
+$B$-updates are grouped into \emph{chunks} of size
+$m^{2/3-\varepsilon_1}$; we write
+$B_{<i} := \sum_{j<i} B_j$ for the aggregate of all completed
+chunks. Cheap bookkeeping is maintained eagerly. The expensive
+matrix products are not per-update affordable, so they are
+recomputed once per chunk: the products needed for $B_{<i+1}$ are
+built during the $m^{2/3-\varepsilon_1}$ updates of chunk
+$B_{i+1}$ itself, with a total budget of
+$O(m^{4/3-2\varepsilon_1})$ --- i.e., $O(m^{2/3-\varepsilon_1})$
+per update.
 
-While inside chunk $B_{i+1}$, queries are answered by combining
-the freshly available data structures for $B_{<i+1}$ with a
-\emph{lazy evaluation} for the in-progress chunk: edges of $B_i$
-and $B_{i+1}$ are scanned one by one against the query endpoints,
-contributing $O(1)$ time per edge. A subtle issue arises when an
-edge inserted in chunk $B_j$ is deleted in a later chunk $B_{j'}$;
-following~\cite{AssadiShah25} this is handled by recording the
-deletion as a \emph{negative} edge in $B_{j'}$, so that the
-arithmetic in $B_{<i}$ remains correct without retroactively
-editing earlier chunks.
+While inside chunk $B_{i+1}$, queries combine the previous-chunk
+products with a \emph{lazy} edge-by-edge scan of the active
+chunks $B_i, B_{i+1}$, costing $O(1)$ per edge. Edges deleted in a
+later chunk than they were inserted are recorded as negative
+entries~\cite[\S3.3]{AssadiShah25}, so the chunk-aggregate stays
+correct without retroactive edits.
 
 \subsection{Data structures}
 \label{sec:warmup:datastructures}
@@ -987,23 +950,20 @@ editing earlier chunks.
   \label{tab:datastructures}
 \end{table}
 
-Table~\ref{tab:datastructures} lists the matrix products maintained
-across the three outer-layer classes, all evaluated against the
-chunk-aggregate $B_{<i}$. Each such product encodes the count of
-two- or three-hop paths between the indicated vertex classes. For
-example, $A^{H*}\!\cdot B_{<i}$ records, for every High vertex
-$u\in L_1$ and every $z\in L_3$, the number of $L_1$-$L_2$-$L_3$
-wedges from $u$ to $z$ that use only edges of completed chunks.
-In database terminology this is a select-project-aggregate over the
-join $A\bowtie B$ restricted to $L_1^H$. The triple product
-$A^{H*}\!\cdot B_{<i}\!\cdot C^{*H}$ similarly stores the number of
-$3$-paths between any two High endpoints, computed as a single
-rectangular matrix product per chunk transition. Medium classes
-require only the one-sided products $A^{M*}\!\cdot B_{<i}$ and
-$B_{<i}\!\cdot C^{*M}$ (the third hop is iterated at query time),
-while Low classes need finer S/D decompositions of $B_{<i}$ so that
-the dense-block product $A^{L*}\!\cdot B_{<i,DD}$ can be computed
-once per chunk via FMM.
+Table~\ref{tab:datastructures} lists the matrix products
+maintained across the three outer-layer classes, all evaluated
+against the chunk-aggregate $B_{<i}$. Each product encodes a 2- or
+3-hop count between the indicated class pair --- in database terms,
+a select-project-aggregate over the join $A \bowtie B$ (or
+$B \bowtie C$) restricted to that class. The High-High triple
+product $A^{H*}\!\cdot\!B_{<i}\!\cdot\!C^{*H}$ stores 3-path counts
+between any two High endpoints, so any HH query is answered in
+$O(1)$. Medium classes get only one-sided products and pay an
+iteration cost on the third hop. Low classes need a finer
+Dense/Sparse decomposition of $B_{<i}$ so that the dense-block
+product $A^{L*}\!\cdot\!B_{<i,DD}$ --- the only one of these
+products that actually requires FMM --- can be amortized once per
+chunk.
 
 \begin{lemma}[Update-time accounting for Table~\ref{tab:datastructures}]
 \label{lem:warmup-update}
@@ -1013,30 +973,23 @@ The worst-case time to update all data structures in Table~\ref{tab:datastructur
 
 \subsection{Answering queries}
 \label{sec:warmup:queries}
-With the data structures of Table~\ref{tab:datastructures} in place,
-a query $(u, v)$ with $u \in L_1$, $v \in L_4$ is answered by case
-analysis on the classes of $u$ and $v$~\cite[Lemma~3.8]{AssadiShah25}.
+A query $(u, v)$ with $u \in L_1$, $v \in L_4$ is answered by case
+analysis on the classes of $u$ and
+$v$~\cite[Lemma~3.8]{AssadiShah25}:
 \begin{description}
-  \item[Both High.] The precomputed triple product
-    $A^{H*}\!\cdot\!B_{<i}\!\cdot\!C^{*H}$ stores the $3$-path count
-    between every pair of High endpoints, so the answer is read off
-    in $O(1)$.
-  \item[Mixed (HM, ML, HL, MM).] We iterate over the at most
-    $2m^{2/3-\varepsilon_1}$ neighbours of the lower-class endpoint
-    and look up two-hop counts in $A^{H*}\!\cdot\!B_{<i}$ or
-    $A^{M*}\!\cdot\!B_{<i}$, paying $O(m^{2/3-\varepsilon_1})$ per
-    query.
-  \item[Both Low.] We iterate over the
-    $2m^{1/3+\varepsilon_1}$ neighbours of $v$ and combine DD, SS,
-    SD contributions from the stored Low-class products, with the
-    DS contribution computed symmetrically on $u$'s side via
-    $B_{i,DS}\!\cdot\!C^{*L}$. Cost: $O(m^{1/3+\varepsilon_1})$.
+  \item[Both High.] $O(1)$: read the precomputed triple product.
+  \item[Mixed.] $O(m^{2/3-\varepsilon_1})$: iterate the lower-class
+    endpoint's row (at most $2m^{2/3-\varepsilon_1}$ entries) and
+    look up two-hop counts.
+  \item[Both Low.] $O(m^{1/3+\varepsilon_1})$: iterate the
+    low-degree neighbourhood ($2m^{1/3+\varepsilon_1}$ entries) and
+    combine the four DD/SS/SD/DS contributions.
 \end{description}
-Lazy evaluation handles edges of the active chunks $B_i$, $B_{i+1}$
-in an additional $O(m^{2/3-\varepsilon_1})$ time. Combining these
-bounds with Lemma~\ref{lem:warmup-update} yields the main statement
-of the restricted variant: under Assumptions~1--3, $4$-cycles in a
-fully dynamic $4$-layered graph can be counted in worst-case time
+Plus a lazy edge-scan of the active chunks $B_i, B_{i+1}$, costing
+another $O(m^{2/3-\varepsilon_1})$. Combining these bounds with
+Lemma~\ref{lem:warmup-update} yields the main statement of the
+warm-up: under our two assumptions, $4$-cycles in a fully dynamic
+$4$-layered graph are counted in worst-case time
 $O(m^{2/3-\varepsilon_1})$.
 
 %% =========================================================================
@@ -1091,16 +1044,18 @@ by definition of the rectangular FMM exponent~\cite{ADW25}. \qedhere
 \subsection{The constraint system}
 \label{sec:fmm:constraints}
 
-Charging the cost of Theorem~\ref{thm:fmm-step} against the per-chunk
-budget $m^{4/3-2\varepsilon_1}$ from Lemma~\ref{lem:warmup-update}
-yields the inequality
+Charging the cost of Theorem~\ref{thm:fmm-step} against the
+per-chunk budget $m^{4/3-2\varepsilon_1}$ from
+Lemma~\ref{lem:warmup-update} yields the inequality
 \begin{equation}\label{eq:warmup-fmm}
 \rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}
 \;\le\; 4/3 - 2\varepsilon_1,
 \end{equation}
-which is the constraint that forces $\varepsilon_1$ to be strictly
-positive. Together with the High-High analogue and three threshold
-orderings, the full system is
+the FMM constraint for the Low-Dense block. The High-High product
+gives a symmetric FMM constraint, and three further inequalities
+(threshold orderings on $\varepsilon, \varepsilon_1, \varepsilon_2$
+--- the overlap conditions on the class boundaries) complete the
+system:
 \begin{align*}
 &\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}
    \le 4/3 - 2\varepsilon_1, \\
@@ -1108,15 +1063,17 @@ orderings, the full system is
    \le 4/3 - 2\varepsilon_1, \\
 &3\varepsilon_1 + 2\varepsilon \le \varepsilon_2, \quad
   \varepsilon_1 \le 1/6, \quad
-  \varepsilon_1 - \varepsilon_2 \le 1/3,
+  \varepsilon_1 - \varepsilon_2 \le 1/3.
 \end{align*}
-corresponding to Equations~(5), (2), (6), (7), (8)
-of~\cite[\S 3.4]{AssadiShah25}. With the current rectangular FMM
-bounds of~\cite{ADW25} the system is feasible at
-$\varepsilon_1 \approx 0.0420$, $\varepsilon_2 \approx 0.1457$, and
-$\varepsilon \approx 0.0098$ (paper Appendix~B). The next subsection
-gives a clean closed-form solution at the conjectural optimum
-$\omega = 2$.
+The first two are the FMM constraints --- the only inequalities
+whose left-hand side depends on $\omega$; the last three are simple
+algebraic relations among the thresholds (Equations~(5), (2), (6),
+(7), (8) of~\cite[\S3.4]{AssadiShah25}, in that order). With current
+rectangular FMM bounds~\cite{ADW25} the system is feasible at
+$\varepsilon_1 \approx 0.0420$, $\varepsilon_2 \approx 0.1457$,
+$\varepsilon \approx 0.0098$~\cite[App.~B]{AssadiShah25}. The next
+subsection gives a clean closed-form solution at the conjectural
+optimum $\omega = 2$.
 
 \subsection{Closed-form feasibility at \texorpdfstring{$\omega = 2$}{omega = 2}}
 \label{sec:fmm:closed-form}
@@ -1169,15 +1126,20 @@ All five constraints are satisfied, so the proposed assignment is
 feasible.
 \end{proof}
 
-The verification highlights why FMM is essential. The two FMM
-constraints (constraints~(2) and~(5) of~\cite{AssadiShah25}, the
-latter our Eq.~\eqref{eq:warmup-fmm}) bind tightly at $\omega = 2$,
-while the three threshold orderings (constraints~(6), (7), (8))
-have slack; without a sub-cubic exponent the FMM constraints would
-force $\varepsilon_1 = 0$.
-Appendix~B of~\cite{AssadiShah25} carries out the analogous
-verification with the current numerical bounds of~\cite{ADW25}
-and confirms a strictly positive slack.
+The verification highlights why FMM is essential. At $\omega = 2$
+with this assignment, two constraints bind tightly: the Low-Dense
+FMM constraint (our Eq.~\eqref{eq:warmup-fmm}, equivalently
+constraint~(5) of~\cite{AssadiShah25}) and the SS/SD threshold
+(constraint~(6)); the remaining three (the High-High FMM and
+constraints~(7), (8)) have slack. Of these two tight constraints,
+the Low-Dense FMM is the load-bearing one --- the only
+$\omega$-dependent constraint of the system that binds, and the
+constraint that would force $\varepsilon_1 = 0$ if FMM were
+unavailable. The other tight constraint is a purely algebraic
+threshold-overlap condition that holds independently of $\omega$.
+Appendix~B of~\cite{AssadiShah25} runs the analogous verification
+with the current numerical bounds of~\cite{ADW25} and confirms a
+strictly positive slack.
 Section~\ref{sec:experiments} revisits the same FMM step
 empirically, asking when its surrounding class-routing machinery
 actually fires --- the structural counterpart to the algebraic
@@ -1409,9 +1371,9 @@ parameters $\varepsilon_1 = 1/24$, $\varepsilon_2 = 5/24$, and
 $\varepsilon = 1/24$. Where the source paper verifies feasibility
 numerically with the current rectangular FMM
 bounds~(Appendix~B of~\cite{AssadiShah25}), the $\omega = 2$
-closed form makes interpretable why two of the five constraints
-(the rectangular FMM constraints) bind tightly while the others
-have slack, identifying FMM as the load-bearing ingredient of the
+closed form makes interpretable why the rectangular FMM constraint
+binds tight --- the only $\omega$-dependent constraint of the five
+that does --- identifying FMM as the load-bearing ingredient of the
 parameter trade-off. The supporting dimension analysis
 (Theorem~\ref{thm:fmm-step}) is taken from the source paper. In
 Section~\ref{sec:experiments} we located, empirically, the input
