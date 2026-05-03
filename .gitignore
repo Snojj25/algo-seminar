@@ -1,5 +1,23 @@
 .DS_STORE
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Experiment artifacts
+code/data/*
+!code/data/.gitkeep
+!code/data/download.sh
+code/results/*
+!code/results/.gitkeep
+code/figures/*.pdf
+code/figures/*.png
+
 # LaTeX build artifacts
 paper/*.aux
 paper/*.bbl

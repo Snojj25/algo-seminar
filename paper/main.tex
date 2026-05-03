@@ -1227,12 +1227,19 @@ Algorithm~\ref{alg:simple}, maintaining a wedge-count matrix $W$ in dense
 \texttt{numpy} storage and answering queries by an inner product over
 $N(u)$, achieving $O(n)$ per update by Lemma~\ref{lem:simple}.
 \textsc{Naive-Recompute} recomputes the global 4-cycle count from scratch
-at every update via the wedge-sum identity
-$\#C_4 = \tfrac{1}{2}\sum_{v} \binom{W(v)}{2}$, which costs $O(n+m)$ per
-update and serves as the combinatorial analogue of the static FMM-based
-counters of~\cite{AYZ97}; we deliberately avoid an FMM-based recompute baseline,
-since the asymptotic improvement of~\cite{AssadiShah25} over~\cite{HHH22} is
-exactly what this baseline cannot see.
+at every update via the path-pair identity
+\[
+  \#C_4 \;=\; \tfrac{1}{2}\sum_{u < w}\binom{P[u,w]}{2},
+\]
+where $P[u,w] = |N(u) \cap N(w)|$ is the number of length-$2$ paths
+between $u$ and $w$ (equivalently, the off-diagonal entries of $A^2$).
+Computing $P$ via dense GEMM costs $O(n^\omega)$ (or $O(nm)$ sparse) and
+summing the binomials adds $O(n^2)$, so each recompute is
+$\Theta(n^\omega + n^2)$ in our implementation. This is the combinatorial
+counterpart of the static FMM-based counters of~\cite{AYZ97}; we
+deliberately avoid a faster FMM-based baseline, since the asymptotic
+improvement of~\cite{AssadiShah25} over~\cite{HHH22} is exactly what such
+a baseline cannot see.
 The implementation uses Python~3.11 with NumPy on a single workstation
 (CPU and RAM specifications are TBD). Synthetic inputs are
 Erd\H{o}s-R\'enyi $G(n,p)$ graphs at three densities,
