@@ -135,16 +135,13 @@ four-way instance considered throughout this paper is
 \[
   J \;=\; A(L_1,L_2) \bowtie B(L_2,L_3) \bowtie C(L_3,L_4) \bowtie D(L_4,L_1),
 \]
-which has a clean graph-theoretic reading: each binary relation
-encodes a bipartite edge set between two attribute domains, and the
-size of $J$ equals the number of $4$-cycles in the resulting
-$4$-layered graph (made precise in
-Section~\ref{sec:reduction:joins}). IVM is the problem of updating
-a query's answer incrementally after each tuple update, without
-rescanning the database. Maintaining $|J|$ under tuple updates is
-therefore equivalent to dynamic $4$-cycle counting; the converse
-direction holds via a structural reduction recalled in
-Section~\ref{sec:reduction}.
+which has a clean graph-theoretic reading: each binary relation is
+a bipartite edge set between two attribute domains, and $|J|$
+equals the number of $4$-cycles in the resulting $4$-layered graph
+(Section~\ref{sec:reduction:joins}). IVM updates a query's answer
+incrementally after each tuple change; maintaining $|J|$ under
+updates is therefore equivalent to dynamic $4$-cycle counting
+(Section~\ref{sec:reduction}).
 
 In each of these settings the host graph evolves under edge
 insertions and deletions, and recomputing the count from scratch
@@ -471,9 +468,50 @@ lower bound and do not invoke it in any proof.
 
 \begin{figure}[t]
   \centering
-  % \includegraphics[width=\columnwidth]{figures/fig1-layered}
-  \framebox[\columnwidth]{\rule{0pt}{6em}\textsc{Fig 1 placeholder}}
-  \caption{A 4-layered graph encoding a cyclic join $A \bowtie B \bowtie C \bowtie D$. One layered 4-cycle highlighted. Adapted from~\cite{AssadiShah25}, Fig.~1.}
+  \begin{tikzpicture}[
+      every node/.style={font=\scriptsize},
+      vert/.style={circle,draw,inner sep=1.2pt,minimum size=4.5pt,fill=white},
+      ledge/.style={gray!70,thin},
+      hedge/.style={red!75!black,very thick},
+    ]
+    %% Layer labels.
+    \foreach \i/\lab in {1/$L_1$,2/$L_2$,3/$L_3$,4/$L_4$} {
+      \node at ({(\i-1)*1.5}, 2.1) {\lab};
+    }
+    %% Three vertices per layer.
+    \foreach \i in {1,2,3,4} {
+      \pgfmathsetmacro{\xx}{(\i-1)*1.5}
+      \node[vert] (\i a) at (\xx, 1.6) {};
+      \node[vert] (\i b) at (\xx, 1.0) {};
+      \node[vert] (\i c) at (\xx, 0.4) {};
+    }
+    %% Highlighted 4-cycle vertices labeled.
+    \node[left=1pt of 1a] {$a$};
+    \node[left=1pt of 2a] {$b$};
+    \node[right=1pt of 3a] {$c$};
+    \node[right=1pt of 4a] {$d$};
+
+    %% Light gray edges between consecutive layers (a few each).
+    \foreach \i/\j in {1/2,2/3,3/4} {
+      \draw[ledge] (\i a) -- (\j b);
+      \draw[ledge] (\i b) -- (\j a);
+      \draw[ledge] (\i b) -- (\j c);
+      \draw[ledge] (\i c) -- (\j b);
+      \draw[ledge] (\i a) -- (\j c);
+    }
+    %% Highlighted 4-cycle a in L1 -> b in L2 -> c in L3 -> d in L4 -> a.
+    \draw[hedge] (1a) -- (2a);
+    \draw[hedge] (2a) -- (3a);
+    \draw[hedge] (3a) -- (4a);
+    \draw[hedge] (4a) to[bend right=45] (1a);
+
+    %% Relation labels between layers.
+    \node[font=\scriptsize\itshape] at (0.75, -0.1) {$A$};
+    \node[font=\scriptsize\itshape] at (2.25, -0.1) {$B$};
+    \node[font=\scriptsize\itshape] at (3.75, -0.1) {$C$};
+    \node[font=\scriptsize\itshape] at (2.25, 2.55) {$D$};
+  \end{tikzpicture}
+  \caption{A 4-layered graph encoding the cyclic join $A \bowtie B \bowtie C \bowtie D$. Each binary relation is a bipartite edge set between two attribute domains. The highlighted layered 4-cycle $(a, b, c, d)$ corresponds to a tuple in $J$. Adapted from~\cite{AssadiShah25}, Fig.~1.}
   \label{fig:layered}
 \end{figure}
 

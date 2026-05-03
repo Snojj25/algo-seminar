@@ -22,6 +22,7 @@
 \citation{HKNS15}
 \citation{HHH22}
 \citation{HHH22}
+\citation{AYZ97}
 \@writefile{toc}{\contentsline {section}{Abstract}{1}{section*.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
@@ -30,7 +31,6 @@
 \newlabel{tab:ladder}{{1}{1}{State of the art for fully dynamic subgraph counting on patterns of at most four vertices. Lower bounds are conditional (OMv for 3- and 4-cycles; combinatorial 4-clique conjecture for 4-cliques)}{table.caption.5}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Related work}{1}{section.2}\protected@file@percent }
 \newlabel{sec:related}{{2}{1}{Related work}{section.2}{}}
-\citation{AYZ97}
 \citation{KNN20}
 \citation{HKNS15}
 \citation{HLS22}
@@ -48,6 +48,8 @@
 \newlabel{sec:related:hhh}{{2.3}{2}{The $O(m^{2/3})$ algorithm of Hanauer, Henzinger, and Hua}{subsection.2.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Why FMM was thought not to help in IVM}{2}{subsection.2.4}\protected@file@percent }
 \newlabel{sec:related:fmm-belief}{{2.4}{2}{Why FMM was thought not to help in IVM}{subsection.2.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Overview of the Assadi-Shah algorithm}{2}{subsection.2.5}\protected@file@percent }
+\newlabel{sec:related:positioning}{{2.5}{2}{Overview of the Assadi-Shah algorithm}{subsection.2.5}{}}
 \citation{AssadiShah25}
 \citation{ADW25}
 \citation{Strassen69}
@@ -56,18 +58,16 @@
 \citation{AssadiShah25}
 \citation{AssadiShah25}
 \citation{NRR14,NPRR18}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Overview of the Assadi-Shah algorithm}{3}{subsection.2.5}\protected@file@percent }
-\newlabel{sec:related:positioning}{{2.5}{3}{Overview of the Assadi-Shah algorithm}{subsection.2.5}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Preliminaries}{3}{section.3}\protected@file@percent }
 \newlabel{sec:prelim}{{3}{3}{Preliminaries}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Graphs and subgraph notation}{3}{subsection.3.1}\protected@file@percent }
 \newlabel{sec:prelim:notation}{{3.1}{3}{Graphs and subgraph notation}{subsection.3.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Dynamic graph model}{3}{subsection.3.2}\protected@file@percent }
 \newlabel{sec:prelim:dynamic}{{3.2}{3}{Dynamic graph model}{subsection.3.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces A 4-layered graph encoding a cyclic join $A \bowtie  B \bowtie  C \bowtie  D$. One layered 4-cycle highlighted. Adapted from\nonbreakingspace \citep  {AssadiShah25}, Fig.\nonbreakingspace 1.}}{3}{figure.caption.6}\protected@file@percent }
-\newlabel{fig:layered}{{1}{3}{A 4-layered graph encoding a cyclic join $A \bowtie B \bowtie C \bowtie D$. One layered 4-cycle highlighted. Adapted from~\cite {AssadiShah25}, Fig.~1}{figure.caption.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Fast matrix multiplication}{3}{subsection.3.3}\protected@file@percent }
 \newlabel{sec:prelim:fmm}{{3.3}{3}{Fast matrix multiplication}{subsection.3.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces A 4-layered graph encoding the cyclic join $A \bowtie  B \bowtie  C \bowtie  D$. Each binary relation is a bipartite edge set between two attribute domains. The highlighted layered 4-cycle $(a, b, c, d)$ corresponds to a tuple in $J$. Adapted from\nonbreakingspace \citep  {AssadiShah25}, Fig.\nonbreakingspace 1.}}{3}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:layered}{{1}{3}{A 4-layered graph encoding the cyclic join $A \bowtie B \bowtie C \bowtie D$. Each binary relation is a bipartite edge set between two attribute domains. The highlighted layered 4-cycle $(a, b, c, d)$ corresponds to a tuple in $J$. Adapted from~\cite {AssadiShah25}, Fig.~1}{figure.caption.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}The OMv conjecture}{3}{subsection.3.4}\protected@file@percent }
 \newlabel{sec:prelim:omv}{{3.4}{3}{The OMv conjecture}{subsection.3.4}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}The cyclic-join equivalence}{3}{section.4}\protected@file@percent }
@@ -76,13 +76,13 @@
 \newlabel{sec:reduction:joins}{{4.1}{3}{Joins as layered graphs}{subsection.4.1}{}}
 \citation{AssadiShah25}
 \citation{AssadiShah25}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Lifting a general graph $G$ (left) to a $4$-layered graph $G'$ (right). Every vertex of $V$ is replicated in each layer $L_1, \dots  , L_4$; gray edges schematically depict the lifted copies between consecutive layers. The $4$-cycle $u, v, x, y$ in $G$ corresponds to the highlighted layered $4$-cycle $(u, 1) \to (v, 2) \to (x, 3) \to (y, 4) \to (u, 1)$, with the closing $L_4 \to L_1$ edge drawn as a curved arc. For legibility, only the highlighted cycle is shown in full; remaining lifted edges are partial.}}{4}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:lifting}{{2}{4}{Lifting a general graph $G$ (left) to a $4$-layered graph $G'$ (right). Every vertex of $V$ is replicated in each layer $L_1, \dots , L_4$; gray edges schematically depict the lifted copies between consecutive layers. The $4$-cycle $u, v, x, y$ in $G$ corresponds to the highlighted layered $4$-cycle $(u, 1) \to (v, 2) \to (x, 3) \to (y, 4) \to (u, 1)$, with the closing $L_4 \to L_1$ edge drawn as a curved arc. For legibility, only the highlighted cycle is shown in full; remaining lifted edges are partial}{figure.caption.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Lifting a general graph to a 4-layered graph}{4}{subsection.4.2}\protected@file@percent }
 \newlabel{sec:reduction:lifting}{{4.2}{4}{Lifting a general graph to a 4-layered graph}{subsection.4.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Equivalence theorem}{4}{subsection.4.3}\protected@file@percent }
 \newlabel{sec:reduction:theorem}{{4.3}{4}{Equivalence theorem}{subsection.4.3}{}}
 \newlabel{thm:lifting}{{1}{4}{General-to-layered equivalence}{theorem.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Lifting a general graph $G$ (left) to a $4$-layered graph $G'$ (right). Every vertex of $V$ is replicated in each layer $L_1, \dots  , L_4$; gray edges schematically depict the lifted copies between consecutive layers. The $4$-cycle $u, v, x, y$ in $G$ corresponds to the highlighted layered $4$-cycle $(u, 1) \to (v, 2) \to (x, 3) \to (y, 4) \to (u, 1)$, with the closing $L_4 \to L_1$ edge drawn as a curved arc. For legibility, only the highlighted cycle is shown in full; remaining lifted edges are partial.}}{4}{figure.caption.7}\protected@file@percent }
-\newlabel{fig:lifting}{{2}{4}{Lifting a general graph $G$ (left) to a $4$-layered graph $G'$ (right). Every vertex of $V$ is replicated in each layer $L_1, \dots , L_4$; gray edges schematically depict the lifted copies between consecutive layers. The $4$-cycle $u, v, x, y$ in $G$ corresponds to the highlighted layered $4$-cycle $(u, 1) \to (v, 2) \to (x, 3) \to (y, 4) \to (u, 1)$, with the closing $L_4 \to L_1$ edge drawn as a curved arc. For legibility, only the highlighted cycle is shown in full; remaining lifted edges are partial}{figure.caption.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Consequence}{4}{subsection.4.4}\protected@file@percent }
 \newlabel{sec:reduction:consequence}{{4.4}{4}{Consequence}{subsection.4.4}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}A simple $O(n)$ algorithm}{4}{section.5}\protected@file@percent }
@@ -177,12 +177,12 @@
 \newlabel{sec:experiments:setup}{{9.1}{8}{Setup}{subsection.9.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Methodology}{8}{subsection.9.2}\protected@file@percent }
 \newlabel{sec:experiments:methodology}{{9.2}{8}{Methodology}{subsection.9.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Results}{8}{subsection.9.3}\protected@file@percent }
+\newlabel{sec:experiments:results}{{9.3}{8}{Results}{subsection.9.3}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Median per-update time vs.\ $n$ (log-log) for Simple-Wedge and Naive-Recompute at three densities.}}{8}{figure.caption.9}\protected@file@percent }
 \newlabel{fig:update-time}{{3}{8}{Median per-update time vs.\ $n$ (log-log) for Simple-Wedge and Naive-Recompute at three densities}{figure.caption.9}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Cumulative time vs.\ number of updates: crossover where dynamic maintenance overtakes recomputation.}}{8}{figure.caption.10}\protected@file@percent }
 \newlabel{fig:crossover}{{4}{8}{Cumulative time vs.\ number of updates: crossover where dynamic maintenance overtakes recomputation}{figure.caption.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Results}{8}{subsection.9.3}\protected@file@percent }
-\newlabel{sec:experiments:results}{{9.3}{8}{Results}{subsection.9.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Connection to the theoretical bounds}{8}{subsection.9.4}\protected@file@percent }
 \newlabel{sec:experiments:theory}{{9.4}{8}{Connection to the theoretical bounds}{subsection.9.4}{}}
 \citation{AssadiShah25}

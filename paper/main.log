@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.2)  3 MAY 2026 01:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.2)  3 MAY 2026 11:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1345,15 +1345,71 @@ tineT-TLF/m/it/9 (-20) Stream-
  []
 
 
-Overfull \hbox (8.67993pt too wide) in paragraph at lines 170--184
+Overfull \hbox (8.67993pt too wide) in paragraph at lines 167--181
 \OML/nxlmi/m/it/9 O\LMS/ntxsy/m/n/9 ¹\OML/nxlmi/m/it/9 m[]\LMS/ntxsy/m/n/9 º$ \
 T1/LinuxLibertineT-TLF/m/n/9 (-20) for a con-stant $\OML/nxlmi/m/it/9 " > \OT1/
 LinuxLibertineT-TLF/m/n/9 (-20) 0$ \T1/LinuxLibertineT-TLF/m/n/9 (-20) de-pend-
 ing on the matrix-multiplication
  []
 
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
+(Font)              scaled to size 6.1pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
+(Font)              scaled to size 10.95pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
+(Font)              scaled to size 8.0pt on input line 211.
+LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
+(Font)              scaled to size 6.1pt on input line 211.
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 211.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 211.
+
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 6.0pt on input line 214.
+(Font)              scaled to size 6.0pt on input line 229.
 [1.1{/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr
 /local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc}{/usr/
 local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}
@@ -1362,114 +1418,58 @@ local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}
 /usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_oexx6f.enc}{/
 usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc}{/u
 sr/local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}]
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
-(Font)              scaled to size 6.1pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
-(Font)              scaled to size 10.95pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
-(Font)              scaled to size 8.0pt on input line 214.
-LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
-(Font)              scaled to size 6.1pt on input line 214.
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 258.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 214.
+(hyperref)                removing `superscript' on input line 258.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 214.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 261.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `superscript' on input line 261.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 261.
+(hyperref)                removing `math shift' on input line 258.
 
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 9.0pt on input line 359.
+(Font)              scaled to size 9.0pt on input line 356.
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 7.0pt on input line 359.
+(Font)              scaled to size 7.0pt on input line 356.
 [2.2]
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/sc' will be
-(Font)              scaled to size 9.0pt on input line 408.
+(Font)              scaled to size 9.0pt on input line 405.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 6.6pt on input line 408.
+(Font)              scaled to size 6.6pt on input line 405.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 5.5pt on input line 408.
+(Font)              scaled to size 5.5pt on input line 405.
+LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
+(Font)              scaled to size 6.5pt on input line 480.
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/it' will be
+(Font)              scaled to size 6.0pt on input line 509.
 
 
-Class acmart Warning: A possible image without description on input line 478.
+Class acmart Warning: A possible image without description on input line 516.
 
 [3.3{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_ncsllp.e
 nc}]
-LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `OML/nxlmi/m/it' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `LMS/ntxsy/m/n' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `LMX/ntxexx/m/n' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `U/ntxmia/m/it' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `U/ntxsym/m/n' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `U/ntxsyc/m/n' will be
-(Font)              scaled to size 6.5pt on input line 553.
-LaTeX Font Info:    Font shape `U/ntxexa/m/n' will be
-(Font)              scaled to size 6.5pt on input line 553.
+
+Class acmart Warning: A possible image without description on input line 638.
 
 
-Class acmart Warning: A possible image without description on input line 600.
-
-
-Overfull \hbox (50.38246pt too wide) in paragraph at lines 614--625
+Overfull \hbox (50.38246pt too wide) in paragraph at lines 652--663
 \T1/LinuxLibertineT-TLF/m/n/9 (-20) struc-tion: each length-$\OT1/LinuxLibertin
 eT-TLF/m/n/9 (-20) 3$ \T1/LinuxLibertineT-TLF/m/n/9 (-20) path $\OML/nxlmi/m/it
 /9 u; x; y; v$ \T1/LinuxLibertineT-TLF/m/n/9 (-20) in $\OML/nxlmi/m/it/9 G$ \T1
@@ -1484,48 +1484,47 @@ m/it/9 ; \LMS/ntxsy/m/n/9 ¹\OML/nxlmi/m/it/9 x; \OT1/LinuxLibertineT-TLF/m/n/9
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 646.
+(hyperref)                removing `math shift' on input line 684.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 646.
+(hyperref)                removing `math shift' on input line 684.
 
-[4.4]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 693.
+put line 731.
+[4.4]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 810.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 772.
+(hyperref)                removing `math shift' on input line 810.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 772.
+(hyperref)                removing `math shift' on input line 842.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 804.
+(hyperref)                removing `math shift' on input line 842.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 804.
+(hyperref)                removing `math shift' on input line 842.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 804.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 804.
+(hyperref)                removing `math shift' on input line 842.
 
 [5.5]
-Overfull \hbox (13.69148pt too wide) in paragraph at lines 952--957
+Overfull \hbox (13.69148pt too wide) in paragraph at lines 990--995
 []\T1/LinuxLibertineT-TLF/m/n/9 (-20) We it-er-ate over the at most $\OT1/Linux
 LibertineT-TLF/m/n/9 (-20) 2\OML/nxlmi/m/it/9 m[]$
  []
 
 
-Overfull \hbox (30.87263pt too wide) in paragraph at lines 985--987
+Overfull \hbox (30.87263pt too wide) in paragraph at lines 1023--1025
 \T1/LinuxLibertineT-TLF/m/it/9 (-20) ma-trix prod-uct $\OML/nxlmi/m/it/9 A[]  \
 LMS/ntxsy/m/n/9 ^^A  \OML/nxlmi/m/it/9 B[]$ \T1/LinuxLibertineT-TLF/m/it/9 (-20
 ) can be com-puted in time $\OML/nxlmi/m/it/9 m[]$\T1/LinuxLibertineT-TLF/m/it/
@@ -1533,36 +1532,36 @@ LMS/ntxsy/m/n/9 ^^A  \OML/nxlmi/m/it/9 B[]$ \T1/LinuxLibertineT-TLF/m/it/9 (-20
  []
 
 [6.6]
-Overfull \hbox (5.04724pt too wide) in paragraph at lines 1127--1134
+Overfull \hbox (5.04724pt too wide) in paragraph at lines 1165--1172
 []\T1/LinuxLibertineT-TLF/m/n/9 (-20) During the $\OML/nxlmi/m/it/9 m[]$ \T1/Li
 nuxLibertineT-TLF/m/n/9 (-20) up-dates
  []
 
 
-Overfull \hbox (4.09984pt too wide) in paragraph at lines 1138--1142
+Overfull \hbox (4.09984pt too wide) in paragraph at lines 1176--1180
 \T1/LinuxLibertineT-TLF/m/n/9 (-20) Because the per-update cost of ev-ery con-c
 ur-rent ac-tiv-ity is $\OML/nxlmi/m/it/9 O\LMS/ntxsy/m/n/9 ¹\OML/nxlmi/m/it/9 m
 []\LMS/ntxsy/m/n/9 º$
  []
 
 [7.7]
-LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 11
-89.
+LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 12
+27.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/inconsolata/t1zi4.fd
 File: t1zi4.fd 2018/01/14 T1/zi4 (Inconsolata)
 )
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 9.0pt on input line 1189.
+(Font)              scaled to size 9.0pt on input line 1227.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 
 
-Class acmart Warning: A possible image without description on input line 1238.
+Class acmart Warning: A possible image without description on input line 1276.
 
 
-Class acmart Warning: A possible image without description on input line 1246.
+Class acmart Warning: A possible image without description on input line 1284.
 
 [8.8{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-4.enc
 }] (./main.bbl
@@ -1603,67 +1602,38 @@ L3 programming layer <2026-01-19>
 
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: 97FED1F326B21DF1904B8DDF53E92997;8221
-(rerunfilecheck)             After:  D60D86C42D2BA8C2DD156E65815804BF;8221.
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: D60D86C42D2BA8C2DD156E65815804BF;8221.
  ) 
 Here is how much of TeX's memory you used:
- 32950 strings out of 467525
- 598333 string characters out of 5418983
- 1072235 words of memory out of 5000000
- 60420 multiletter control sequences out of 15000+600000
- 843048 words of font info for 562 fonts, out of 8000000 for 9000
+ 33043 strings out of 467525
+ 599648 string characters out of 5418983
+ 1076384 words of memory out of 5000000
+ 60514 multiletter control sequences out of 15000+600000
+ 848420 words of font info for 565 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 90i,16n,131p,1001b,904s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,16n,131p,1001b,902s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2026/texmf-dist/fonts/type1/public/inconsolata/Inconsolat
+a-zi4r.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/Liberti
+neMathMI.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/Liber
+tineMathMI5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/Li
+bertineMathMI7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx
+/LibertineMathRM.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/lib
+ertine/LinBiolinumT.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/
+libertine/LinBiolinumTB.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/pub
+lic/libertine/LinLibertineT.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1
+/public/libertine/LinLibertineTB.pfb></usr/local/texlive/2026/texmf-dist/fonts/
+type1/public/libertine/LinLibertineTI.pfb></usr/local/texlive/2026/texmf-dist/f
+onts/type1/public/newtx/NewTXMI.pfb></usr/local/texlive/2026/texmf-dist/fonts/t
+ype1/public/newtx/NewTXMI7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/
+public/newtx/txexs.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/n
+ewtx/txmiaX.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/tx
+sym.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
 
-pdfTeX warning (dest): name{table.caption.12} has been referenced but does not 
-exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{figure.caption.11} has been referenced but does not
- exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{table.caption.9} has been referenced but does not e
-xist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{figure.caption.8} has been referenced but does not 
-exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{table.caption.6} has been referenced but does not e
-xist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{section*.14} has been referenced but does not exist
-, replaced by a fixed one
-
-</usr/local/texlive/2026/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-
-zi4r.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/Libertine
-MathMI.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/Liberti
-neMathMI5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/Libe
-rtineMathMI7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/L
-ibertineMathRM.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/liber
-tine/LinBiolinumT.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/li
-bertine/LinBiolinumTB.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/publi
-c/libertine/LinLibertineT.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/p
-ublic/libertine/LinLibertineTB.pfb></usr/local/texlive/2026/texmf-dist/fonts/ty
-pe1/public/libertine/LinLibertineTI.pfb></usr/local/texlive/2026/texmf-dist/fon
-ts/type1/public/newtx/NewTXMI.pfb></usr/local/texlive/2026/texmf-dist/fonts/typ
-e1/public/newtx/NewTXMI7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/pu
-blic/newtx/txexs.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/new
-tx/txmiaX.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/txsy
-m.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/newtx/txsys.pfb>
-Output written on main.pdf (9 pages, 548994 bytes).
+Output written on main.pdf (9 pages, 551334 bytes).
 PDF statistics:
- 547 PDF objects out of 1000 (max. 8388607)
- 491 compressed objects within 5 object streams
- 94 named destinations out of 1000 (max. 500000)
- 103269 words of extra memory for PDF output out of 106986 (max. 10000000)
+ 540 PDF objects out of 1000 (max. 8388607)
+ 484 compressed objects within 5 object streams
+ 88 named destinations out of 1000 (max. 500000)
+ 105317 words of extra memory for PDF output out of 106986 (max. 10000000)
 
