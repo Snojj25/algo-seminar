@@ -6,7 +6,7 @@
 %% For a non-anon "show authors" build, switch to:
 %%   \documentclass[sigconf,nonacm]{acmart}
 
-\documentclass[sigconf,anonymous,review,nonacm]{acmart}
+\documentclass[sigconf,nonacm]{acmart}
 
 %% ---------------------------------------------------------------
 %% Packages
@@ -47,33 +47,29 @@
 %% TODO: settle title before submission. The previous "An Exposition" framing
 %% read as a paper-report; the assignment requires a topic essay (see F4).
 
-\author{Author A}
+\author{Jakob Fir}
 \affiliation{%
-  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \institution{Faculty of Computer and Information Science}
   \city{Ljubljana}
   \country{Slovenia}}
-\email{a@example.si}
 
-\author{Author B}
+\author{Janez Koprivec}
 \affiliation{%
-  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \institution{Faculty of Computer and Information Science}
   \city{Ljubljana}
   \country{Slovenia}}
-\email{b@example.si}
 
-\author{Author C}
+\author{Jure Snoj}
 \affiliation{%
-  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \institution{Faculty of Computer and Information Science}
   \city{Ljubljana}
   \country{Slovenia}}
-\email{c@example.si}
 
-\author{Author D}
+\author{Gal Zmazek}
 \affiliation{%
-  \institution{University of Ljubljana, Faculty of Computer and Information Science}
+  \institution{Faculty of Computer and Information Science}
   \city{Ljubljana}
   \country{Slovenia}}
-\email{d@example.si}
 
 \begin{abstract}
 %% Owner: A. ~150 words. Arc in SECTIONS.md "Abstract".
@@ -98,15 +94,10 @@ rational parameters, complementing the numerical verification
 of~\cite{AssadiShah25}; and (ii) an empirical study contrasting
 the warm-up algorithm of~\cite[\S3]{AssadiShah25} (with NumPy GEMM
 substituting for FMM) against a layer-aware Simple-Wedge baseline,
-which locates the input regime --- bilateral hubs on both sides of
-the cyclic ordering --- where the class-routing machinery actually
+which locates the input regime (bilateral hubs on both sides of
+the cyclic ordering) where the class-routing machinery actually
 pays off.
 \end{abstract}
-
-%% CCS concepts. Pick the right codes from https://dl.acm.org/ccs
-\ccsdesc[500]{Theory of computation~Dynamic graph algorithms}
-\ccsdesc[300]{Theory of computation~Streaming, sublinear and near linear time algorithms}
-\ccsdesc[100]{Information systems~Database query processing}
 
 \keywords{fully dynamic algorithms, subgraph counting, 4-cycles,
 fast matrix multiplication, incremental view maintenance, cyclic joins}
@@ -117,33 +108,33 @@ fast matrix multiplication, incremental view maintenance, cyclic joins}
 \section{Introduction}
 \label{sec:intro}
 
-Counting occurrences of a small pattern graph (triangles, $4$-cycles,
-$4$-cliques) inside a larger host graph is one of the oldest and
-most broadly applicable problems in algorithmic graph theory. The
-same primitive underpins clustering and community-detection
-heuristics in social-network analysis~\cite{SMS20}, motif-discovery
-pipelines in computational biology~\cite{MSOI02}, and
-recurring-subexpression evaluation in database query
-processing~\cite{RPS21}.
+Subgraph counting has many applications in computer science: in
+computational biology, for motif discovery in biological
+networks~\cite{MSOI02}; in social-network analysis, for
+clustering and community detection~\cite{SMS20}; and in database
+systems, for recurring-subexpression evaluation in query
+processing~\cite{RPS21}. The problem asks, given a host graph $G$
+and a small pattern graph $H$ (typically a triangle, $4$-cycle, or
+$4$-clique), for the number of subgraphs of $G$ isomorphic to $H$.
 
-A further motivation, central to this paper, comes from database
-theory: \emph{incremental view maintenance} (IVM) for \emph{cyclic
-joins}. A cyclic join is a query $R_1 \bowtie R_2 \bowtie \cdots
-\bowtie R_k$ over $k$ binary relations whose attribute schemas form
-a cycle, with each relation sharing one attribute with its predecessor
-and one with its successor, and the last relation closing back to
-the first. Such queries are a classical hard case for join
-evaluation~\cite{NRR14,NPRR18}. The
-four-way instance considered throughout this paper is
+In database theory, subgraph counting underlies
+\emph{incremental view maintenance} (IVM) for \emph{cyclic joins}.
+A cyclic join is a query $R_1 \bowtie R_2 \bowtie \cdots \bowtie
+R_k$ over $k$ binary relations whose attribute schemas form a
+cycle: each relation shares one attribute with its predecessor and
+one with its successor, and the last relation closes back to the
+first. Such queries are a classical hard case for join
+evaluation~\cite{NRR14,NPRR18}. The four-way instance considered
+throughout this paper is
 \[
   J \;=\; A(L_1,L_2) \bowtie B(L_2,L_3) \bowtie C(L_3,L_4) \bowtie D(L_4,L_1),
 \]
-which has a clean graph-theoretic reading: each binary relation is
-a bipartite edge set between two attribute domains, and $|J|$
-equals the number of $4$-cycles in the resulting $4$-layered graph
+where each binary relation can be viewed as a bipartite edge set
+between two attribute domains, and $|J|$ equals the number of
+$4$-cycles in the resulting $4$-layered graph
 (Section~\ref{sec:reduction:joins}). IVM updates a query's answer
-incrementally after each tuple change; maintaining $|J|$ under
-updates is therefore equivalent to dynamic $4$-cycle counting
+after each tuple change; maintaining $|J|$ under updates is
+therefore equivalent to dynamic $4$-cycle counting
 (Section~\ref{sec:reduction}).
 
 In each of these settings the host graph evolves under edge
@@ -203,9 +194,9 @@ lens and asks one structural question: where, exactly, does the
 sub-$m^{2/3}$ improvement live? Our answer points at a single
 pressure point. The restricted variant (Section~\ref{sec:warmup})
 reduces every per-update query to a constant number of look-ups
-against stored matrix products, only one of which --- the
+against stored matrix products, only one of which, the
 dense-block product $A^{L*}\!\cdot\!B_{i,DD}$ of
-Section~\ref{sec:fmm} --- is a nontrivial use of FMM, and only that
+Section~\ref{sec:fmm}, is a nontrivial use of FMM, and only that
 one has a cost governed by $\omega$. The phase mechanism of the
 full algorithm (Section~\ref{sec:phases}) promotes the restricted
 variant to a worst-case bound, but the per-update budget remains
@@ -215,13 +206,13 @@ pressure point from complementary directions.
 five-inequality constraint system and give a closed-form
 certificate that the system is feasible at the conjectural optimum
 $\omega = 2$ (Lemma~\ref{lem:feasibility}); the certificate exposes
-\emph{which} constraint binds tight --- the rectangular FMM
+\emph{which} constraint binds tight (the rectangular FMM
 constraint, the only one of the five whose left-hand side depends
-on $\omega$ --- and so isolates FMM as the load-bearing ingredient.
+on $\omega$), thereby isolating FMM as the load-bearing ingredient.
 \emph{Empirically}, we benchmark a faithful-in-shape implementation
 of the restricted variant against a layer-aware wedge baseline
 (Section~\ref{sec:experiments}); the comparison locates the input
-regime --- bilateral hubs on both sides of the cyclic ordering ---
+regime (bilateral hubs on both sides of the cyclic ordering)
 in which the warm-up's class-routing actually fires, and confirms
 that on simpler inputs the layered baseline already captures most
 of the benefit. The two angles converge: the algebraic improvement
@@ -237,10 +228,9 @@ Dynamic subgraph counting builds on three lines of
 work: static FMM-based subgraph algorithms, dynamic
 wedge-maintenance for triangles, and the $4$-vertex result of
 Hanauer, Henzinger, and Hua. The following sections present each
-of these in turn. We then discuss why fast matrix multiplication
-was long thought to be incompatible with incremental view
-maintenance, and close with the positioning of the Assadi-Shah
-result.
+of these in turn, discuss why fast matrix multiplication was long
+thought to be incompatible with incremental view maintenance, and
+close with the Assadi-Shah algorithm.
 
 \subsection{Static algorithms for $4$-cycles}
 \label{sec:related:static}
@@ -355,7 +345,7 @@ prevailing intuition was therefore that any FMM-based speedup must
 be amortised, and could not deliver a worst-case improvement of the
 kind we discuss~\cite[\S1]{AssadiShah25}.
 
-Assadi and Shah~\cite{AssadiShah25} circumvent this intuition by
+Assadi and Shah~\cite{AssadiShah25} address this intuition by
 introducing \emph{phases}: contiguous blocks of $m^{1-\delta}$
 consecutive updates, for a constant $\delta > 0$. During a phase,
 queries are answered by a slower routine that uses precomputed
@@ -388,14 +378,18 @@ contains exactly $m^{2/3}$ vertices (no \emph{tiny} vertices), and
 that vertices do not migrate between degree classes during a
 phase.
 
-We cover the conceptual core: the reduction from general graphs to
-$4$-layered graphs (Section~\ref{sec:reduction}), the simple $O(n)$
-baseline (Section~\ref{sec:simple}), which also serves as the
-algorithm we benchmark, and the restricted variant with two frozen
-relations (Sections~\ref{sec:warmup}--\ref{sec:phases}) whose
-rectangular FMM step we develop in full and whose constraint
-system we verify in closed form. The de-assumption machinery (tiny
-vertices and vertex-class transitions) is left out of scope.
+In Section~\ref{sec:reduction} we present the reduction from
+general graphs to $4$-layered graphs;
+Section~\ref{sec:simple} develops the simple $O(n)$ baseline,
+which also serves as the algorithm we benchmark; and
+Sections~\ref{sec:warmup}--\ref{sec:phases} cover the restricted
+variant of the Assadi-Shah algorithm with two frozen relations,
+its rectangular FMM step in full, and a closed-form verification
+of the constraint system. The technical machinery used by
+\cite{AssadiShah25} to discharge their two simplifying
+assumptions (handling layers with very few vertices, and tracking
+vertices that change degree class during a phase) is out of scope
+here.
 
 %% =========================================================================
 \section{Preliminaries}
@@ -469,7 +463,7 @@ bounds across the asymmetric range are also in~\cite{ADW25}. An algorithm is
 identities; combinatorial algorithms therefore do not benefit from
 $\omega < 3$.
 
-The use of FMM in subgraph counting rests on the standard
+The use of FMM in subgraph counting rests on the
 identification of biadjacency-matrix products with path counts: if
 $X$ is the biadjacency matrix between layers $L_i$ and $L_{i+1}$
 and $Y$ is the biadjacency matrix between $L_{i+1}$ and $L_{i+2}$,
@@ -901,8 +895,8 @@ Inner-layer vertices (in $L_2, L_3$) are classified per chunk
 $m^{1/3-\varepsilon_2}$, and \emph{Sparse} otherwise. The four
 chunk-submatrices $B_{i,DD}, B_{i,DS}, B_{i,SD}, B_{i,SS}$ are
 obtained by restricting both endpoints by class. The Medium class
---- absent from the earlier $O(m^{2/3})$ algorithm
-of~\cite{HHH22} --- is what makes room for the rectangular FMM
+(absent from the earlier $O(m^{2/3})$ algorithm
+of~\cite{HHH22}) is what makes room for the rectangular FMM
 call: it gives the dense-block product
 $A^{L*}\!\cdot\!B_{i,DD}$ the asymmetric dimensions that current
 rectangular bounds can exploit.
@@ -920,7 +914,7 @@ matrix products are not per-update affordable, so they are
 recomputed once per chunk: the products needed for $B_{<i+1}$ are
 built during the $m^{2/3-\varepsilon_1}$ updates of chunk
 $B_{i+1}$ itself, with a total budget of
-$O(m^{4/3-2\varepsilon_1})$ --- i.e., $O(m^{2/3-\varepsilon_1})$
+$O(m^{4/3-2\varepsilon_1})$, i.e., $O(m^{2/3-\varepsilon_1})$
 per update.
 
 While inside chunk $B_{i+1}$, queries combine the previous-chunk
@@ -953,16 +947,16 @@ correct without retroactive edits.
 Table~\ref{tab:datastructures} lists the matrix products
 maintained across the three outer-layer classes, all evaluated
 against the chunk-aggregate $B_{<i}$. Each product encodes a 2- or
-3-hop count between the indicated class pair --- in database terms,
-a select-project-aggregate over the join $A \bowtie B$ (or
+3-hop count between the indicated class pair; in database terms,
+this is a select-project-aggregate over the join $A \bowtie B$ (or
 $B \bowtie C$) restricted to that class. The High-High triple
 product $A^{H*}\!\cdot\!B_{<i}\!\cdot\!C^{*H}$ stores 3-path counts
 between any two High endpoints, so any HH query is answered in
 $O(1)$. Medium classes get only one-sided products and pay an
 iteration cost on the third hop. Low classes need a finer
 Dense/Sparse decomposition of $B_{<i}$ so that the dense-block
-product $A^{L*}\!\cdot\!B_{<i,DD}$ --- the only one of these
-products that actually requires FMM --- can be amortized once per
+product $A^{L*}\!\cdot\!B_{<i,DD}$, the only one of these
+products that actually requires FMM, can be amortized once per
 chunk.
 
 \begin{lemma}[Update-time accounting for Table~\ref{tab:datastructures}]
@@ -999,9 +993,9 @@ $O(m^{2/3-\varepsilon_1})$.
 This section opens up the single pressure point of the restricted
 algorithm: the dense-block product $A^{L*}\!\cdot\!B_{i,DD}$,
 evaluated once per chunk transition. Every other ingredient of the
-warm-up respects the per-chunk budget by counting --- the eager-update
+warm-up respects the per-chunk budget by counting (the eager-update
 bookkeeping, the lazy in-chunk evaluation, the threshold-class
-iterations --- but this product is the only nontrivial use of fast
+iterations), but this product is the only nontrivial use of fast
 matrix multiplication in the algorithm, and the only step whose cost
 is governed by $\omega$. We bound that cost
 (Section~\ref{sec:fmm:step}), set up the constraint system the cost
@@ -1054,7 +1048,7 @@ Lemma~\ref{lem:warmup-update} yields the inequality
 the FMM constraint for the Low-Dense block. The High-High product
 gives a symmetric FMM constraint, and three further inequalities
 (threshold orderings on $\varepsilon, \varepsilon_1, \varepsilon_2$
---- the overlap conditions on the class boundaries) complete the
+that capture the overlap conditions on the class boundaries) complete the
 system:
 \begin{align*}
 &\rfmm{2/3+2\varepsilon}{1/3-\varepsilon_1+\varepsilon_2}{1/3-\varepsilon_1+\varepsilon_2}
@@ -1065,7 +1059,7 @@ system:
   \varepsilon_1 \le 1/6, \quad
   \varepsilon_1 - \varepsilon_2 \le 1/3.
 \end{align*}
-The first two are the FMM constraints --- the only inequalities
+The first two are the FMM constraints, the only inequalities
 whose left-hand side depends on $\omega$; the last three are simple
 algebraic relations among the thresholds (Equations~(5), (2), (6),
 (7), (8) of~\cite[\S3.4]{AssadiShah25}, in that order). With current
@@ -1132,7 +1126,7 @@ FMM constraint (our Eq.~\eqref{eq:warmup-fmm}, equivalently
 constraint~(5) of~\cite{AssadiShah25}) and the SS/SD threshold
 (constraint~(6)); the remaining three (the High-High FMM and
 constraints~(7), (8)) have slack. Of these two tight constraints,
-the Low-Dense FMM is the load-bearing one --- the only
+the Low-Dense FMM is the load-bearing one: the only
 $\omega$-dependent constraint of the system that binds, and the
 constraint that would force $\varepsilon_1 = 0$ if FMM were
 unavailable. The other tight constraint is a purely algebraic
@@ -1142,7 +1136,7 @@ with the current numerical bounds of~\cite{ADW25} and confirms a
 strictly positive slack.
 Section~\ref{sec:experiments} revisits the same FMM step
 empirically, asking when its surrounding class-routing machinery
-actually fires --- the structural counterpart to the algebraic
+actually fires, the structural counterpart to the algebraic
 feasibility we just verified.
 
 %% =========================================================================
@@ -1263,7 +1257,7 @@ class to empty.
 Inputs are layered graphs built by \texttt{layered\_hub}: a
 \emph{planted-hub} family with $k_{\text{hubs}} = 5$ vertices in $L_1$
 at degree linear in $n$, and a \emph{bilateral-hub} family with $5$
-such hubs in both $L_1$ and $L_4$ --- the only setting that triggers
+such hubs in both $L_1$ and $L_4$, the only setting that triggers
 $HH$-class queries in \textsc{Warmup-V3}. Both run a $D$-only stream
 biased toward hub vertices ($75\%$ for planted-hub, $85\%$ for
 bilateral). Per-update times are medians over $200$ updates across
@@ -1289,12 +1283,12 @@ streams.
 At $n_{\text{per-layer}} = 2000$ with hubs only in $L_1$:
 \textsc{Simple-Wedge} costs ${\approx}\,420\,\mu$s/update (linear in
 $n$), \textsc{Warmup-V3} ${\approx}\,4.1\,\mu$s/update,
-\textsc{Layered-Simple-Wedge} ${\approx}\,2.7\,\mu$s/update --- the
+\textsc{Layered-Simple-Wedge} ${\approx}\,2.7\,\mu$s/update; the
 layer-aware baseline beats the warm-up by ${\approx}\,1.6\times$. The
 reason is structural: with hubs only in $L_1$, every $D$-update query
 falls into the $HL$ or $LL$ class. The $HL$ lookup in
 \textsc{Warmup-V3}'s $A^{H*} \!\cdot\! B$ table iterates $|N_C(l)|$
-entries --- exactly the same row sum as the layered baseline, but with
+entries, exactly the same row sum as the layered baseline, but with
 extra class-dispatch overhead in Python. \textsc{Warmup-V3}'s
 distinguishing $O(1)$ \textsc{HH}-lookup is never triggered.
 
@@ -1311,7 +1305,7 @@ $HH$ cell of \textsc{Warmup-V3}'s dispatch table, where the
 precomputed $A^{H*} \!\cdot\! B \!\cdot\! C^{*H}$ matrix yields an
 $O(1)$ lookup. At $n_{\text{per-layer}} = 2000$,
 \textsc{Layered-Simple-Wedge} costs $34.1\,\mu$s/update while
-\textsc{Warmup-V3} costs $6.5\,\mu$s/update --- a $5.2\times$ speedup,
+\textsc{Warmup-V3} costs $6.5\,\mu$s/update, a $5.2\times$ speedup,
 growing with $n$. The layered baseline must iterate
 $|N_C(\text{L4 hub})| = \Theta(n)$ entries; \textsc{Warmup-V3} reads
 one entry of its precomputed table. This is the mechanism promised by
@@ -1336,7 +1330,7 @@ experiments cannot answer it because we do not have rectangular FMM.
 What our experiments \emph{can} establish is that the warm-up's
 class-routing mechanism, in isolation from its FMM ingredient, helps
 only on graphs whose hub structure makes $HH$-class queries fire
-frequently --- which is precisely the structural assumption baked
+frequently, which is precisely the structural assumption baked
 into the design of Section~\ref{sec:warmup}.
 
 %% =========================================================================
@@ -1372,13 +1366,13 @@ $\varepsilon = 1/24$. Where the source paper verifies feasibility
 numerically with the current rectangular FMM
 bounds~(Appendix~B of~\cite{AssadiShah25}), the $\omega = 2$
 closed form makes interpretable why the rectangular FMM constraint
-binds tight --- the only $\omega$-dependent constraint of the five
-that does --- identifying FMM as the load-bearing ingredient of the
+binds tight (the only $\omega$-dependent constraint of the five
+that does), identifying FMM as the load-bearing ingredient of the
 parameter trade-off. The supporting dimension analysis
 (Theorem~\ref{thm:fmm-step}) is taken from the source paper. In
 Section~\ref{sec:experiments} we located, empirically, the input
-regime in which the warm-up's class-routing actually pays off ---
-graphs with hubs on both sides of the cyclic ordering --- by
+regime in which the warm-up's class-routing actually pays off
+(graphs with hubs on both sides of the cyclic ordering), by
 contrasting it with a layer-aware baseline that already captures
 most of the warm-up's benefit on simpler inputs. The two angles
 agree: the algebraic improvement of~\cite{AssadiShah25} lives at
