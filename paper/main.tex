@@ -95,9 +95,12 @@ through the IVM-for-cyclic-joins lens and contributes (i) a
 closed-form algebraic certificate that the underlying constraint
 system is feasible at the conjectural $\omega = 2$ with explicit
 rational parameters, complementing the numerical verification
-of~\cite{AssadiShah25}; and (ii) an empirical comparison of a
-simple $O(n)$ wedge-maintenance baseline against naive
-recomputation.
+of~\cite{AssadiShah25}; and (ii) an empirical study contrasting
+the warm-up algorithm of~\cite[\S3]{AssadiShah25} (with NumPy GEMM
+substituting for FMM) against a layer-aware Simple-Wedge baseline,
+which locates the input regime --- bilateral hubs on both sides of
+the cyclic ordering --- where the class-routing machinery actually
+pays off.
 \end{abstract}
 
 %% CCS concepts. Pick the right codes from https://dl.acm.org/ccs
@@ -1217,148 +1220,115 @@ at $\omega = 2$).
 %% Owner: D. ~1.5 pages. SECTIONS.md "§7". Code in ../code/.
 %% No paper map -- this section is our contribution.
 
+The warm-up of Section~\ref{sec:warmup} avoids $O(n)$-per-update
+enumeration when an endpoint is high-degree by storing matrix products
+restricted to high-degree submatrices and dispatching by class. We ask
+empirically: when does this class-routing actually pay off in
+wall-clock time? Comparing \textsc{Warmup-V3} only to
+\textsc{Simple-Wedge} (which sees the union graph and pays
+$O(\deg_{\text{union}}(u))$ per update) is misleading: a layer-aware
+baseline already avoids much of that cost. We therefore introduce
+\textsc{Layered-Simple-Wedge}, the apples-to-apples baseline.
+
 \subsection{Setup}
 \label{sec:experiments:setup}
-%% SECTIONS.md §7.1. Algorithm: Lemma A.1. Languages: Python+numpy (Go fallback).
-We describe the experimental design here; full results
-will appear in the final version of this paper. Two algorithms are compared.
-\textsc{Simple-Wedge} is a direct implementation of
-Algorithm~\ref{alg:simple}, maintaining a wedge-count matrix $W$ in dense
-\texttt{numpy} storage and answering queries by an inner product over
-$N(u)$, achieving $O(n)$ per update by Lemma~\ref{lem:simple}.
-\textsc{Naive-Recompute} recomputes the global 4-cycle count from scratch
-at every update via the path-pair identity
-\[
-  \#C_4 \;=\; \tfrac{1}{2}\sum_{u < w}\binom{P[u,w]}{2},
-\]
-where $P[u,w] = |N(u) \cap N(w)|$ is the number of length-$2$ paths
-between $u$ and $w$ (equivalently, the off-diagonal entries of $A^2$).
-Computing $P$ via dense GEMM costs $O(n^\omega)$ (or $O(nm)$ sparse) and
-summing the binomials adds $O(n^2)$, so each recompute is
-$\Theta(n^\omega + n^2)$ in our implementation. This is the combinatorial
-counterpart of the static FMM-based counters of~\cite{AYZ97}; we
-deliberately avoid a faster FMM-based baseline, since the asymptotic
-improvement of~\cite{AssadiShah25} over~\cite{HHH22} is exactly what such
-a baseline cannot see.
-The implementation uses Python~3.11 with NumPy on a single workstation
-(CPU and RAM specifications are TBD). Synthetic inputs are
-Erd\H{o}s-R\'enyi $G(n,p)$ graphs at three densities,
-with $n \in \{200, 500, 1000, 2000\}$ for both algorithms and an additional
-$n = 5000$ point for \textsc{Simple-Wedge} only, where
-\textsc{Naive-Recompute} becomes infeasible in pure Python.
-We additionally run \textsc{Simple-Wedge} on one small SNAP
-graph~\cite{SNAP}, \texttt{ca-GrQc} ($n \approx 5\text{k}$,
-$m \approx 14\text{k}$). Each input is exercised under two update streams:
-an insertion-only stream and a mixed $50/50$ insert/delete stream applied
-after a build-up phase.
 
-\subsection{Methodology}
-\label{sec:experiments:methodology}
-%% SECTIONS.md §7.2. Median over 1000 updates; verify against recompute on small graphs.
-Each input graph is constructed by streaming the edge set in as a sequence
-of insertions; we then issue a few hundred no-op queries to warm caches
-before any timing measurement. Reported per-update times are medians over
-$1000$ subsequent updates, since the median is robust against the GC
-pauses and JIT-style warm-up effects that distort means in
-short-lived Python benchmarks. Peak resident memory is captured with
-\texttt{tracemalloc}, summarising the dense $n^2$ wedge matrix that
-dominates \textsc{Simple-Wedge}'s footprint. Correctness is enforced by a
-brute-force oracle on small graphs ($n \le 50$): after every update we
-recount 4-cycles by enumerating quadruples and abort on any mismatch.
-This cross-check, applied across every density and update mode in the
-synthetic suite, is intended to confirm zero output mismatches against
-the ground truth and so guard the order-of-operations subtleties baked
-into Algorithm~\ref{alg:simple}.
+We compare three counters with a common insert/delete/count interface,
+all written in Python~3.11 with NumPy. \textsc{Simple-Wedge} is the
+algorithm of Section~\ref{sec:simple} as written: it maintains a dense
+union-graph wedge matrix $W$ and pays $O(\deg(u) + \deg(v))$ per
+update. \textsc{Layered-Simple-Wedge} is the same idea, made aware of
+the four-layer structure: it maintains only the wedge counts
+$W_{13}[i, w] = \sum_{j} A[i, j] B[j, w]$ relevant to layered
+$4$-cycles and answers a $D$-edge update by
+$\sum_{w \in N_C(l)} W_{13}[i, w]$. It counts exactly the same object
+as the warm-up ($|J| = \operatorname{tr}(ABCD)$) and is the
+apples-to-apples baseline. \textsc{Warmup-V3} is a faithful-in-shape
+implementation of Section~\ref{sec:warmup} with two simplifications,
+both stated in \texttt{code/README.md}: NumPy GEMM substitutes for
+fast rectangular matrix multiplication, and Assumptions 1+2 are fixed
+at construction so updates that would change a vertex's class raise
+an error. Chunk size is fixed at one, collapsing the chunk-Dense
+class to empty.
 
-\subsection{Results}
-\label{sec:experiments:results}
-%% SECTIONS.md §7.3. Two figures + one table.
+Inputs are layered graphs built by \texttt{layered\_hub}: a
+\emph{planted-hub} family with $k_{\text{hubs}} = 5$ vertices in $L_1$
+at degree linear in $n$, and a \emph{bilateral-hub} family with $5$
+such hubs in both $L_1$ and $L_4$ --- the only setting that triggers
+$HH$-class queries in \textsc{Warmup-V3}. Both run a $D$-only stream
+biased toward hub vertices ($75\%$ for planted-hub, $85\%$ for
+bilateral). Per-update times are medians over $200$ updates across
+$3$ random seeds with IQR error bars; build costs are reported
+separately, since \textsc{Warmup-V3} pays an $O(n^3)$ GEMM precompute
+that should not enter a per-update headline. A correctness gate
+($61$ lockstep tests, all passing) verifies that
+\textsc{Warmup-V3.count()} = $\operatorname{tr}(ABCD)$ =
+\textsc{Layered-Simple-Wedge.count()} after every step of random B+D
+streams.
+
+\subsection{Two regimes}
+\label{sec:experiments:warmup}
 
 \begin{figure}[t]
   \centering
-  % \includegraphics[width=\columnwidth]{figures/fig3-update-time}
-  \framebox[\columnwidth]{\rule{0pt}{8em}\textsc{Fig 3 placeholder}}
-  \caption{Median per-update time vs.\ $n$ (log-log) for Simple-Wedge and Naive-Recompute at three densities.}
-  \label{fig:update-time}
+  \includegraphics[width=\columnwidth]{figures/fig8_warmup_vs_simple.pdf}
+  \caption{Planted-hub graphs ($k_{\text{hubs}} = 5$ in $L_1$ only). \textsc{Simple-Wedge} scales linearly in $n$ (slope $0.93$), the textbook $O(\deg_{\text{union}}(\text{hub}))$ worst case. The layered baseline beats \textsc{Warmup-V3} by ${\approx}\,1.6\times$: with no hubs in $L_4$, every $D$-update is $HL$ or $LL$ and the $O(1)$ \textsc{HH}-lookup never fires.}
+  \label{fig:warmup-hub}
 \end{figure}
+
+\textbf{Hubs only on one side (Figure~\ref{fig:warmup-hub}).}
+At $n_{\text{per-layer}} = 2000$ with hubs only in $L_1$:
+\textsc{Simple-Wedge} costs ${\approx}\,420\,\mu$s/update (linear in
+$n$), \textsc{Warmup-V3} ${\approx}\,4.1\,\mu$s/update,
+\textsc{Layered-Simple-Wedge} ${\approx}\,2.7\,\mu$s/update --- the
+layer-aware baseline beats the warm-up by ${\approx}\,1.6\times$. The
+reason is structural: with hubs only in $L_1$, every $D$-update query
+falls into the $HL$ or $LL$ class. The $HL$ lookup in
+\textsc{Warmup-V3}'s $A^{H*} \!\cdot\! B$ table iterates $|N_C(l)|$
+entries --- exactly the same row sum as the layered baseline, but with
+extra class-dispatch overhead in Python. \textsc{Warmup-V3}'s
+distinguishing $O(1)$ \textsc{HH}-lookup is never triggered.
 
 \begin{figure}[t]
   \centering
-  % \includegraphics[width=\columnwidth]{figures/fig4-crossover}
-  \framebox[\columnwidth]{\rule{0pt}{8em}\textsc{Fig 4 placeholder}}
-  \caption{Cumulative time vs.\ number of updates: crossover where dynamic maintenance overtakes recomputation.}
-  \label{fig:crossover}
+  \includegraphics[width=\columnwidth]{figures/fig8c_bilateral.pdf}
+  \caption{Bilateral-hub graphs ($k_{\text{hubs}} = 5$ in \emph{both} $L_1$ and $L_4$). Most $D$-updates now hit the $HH$ cell of \textsc{Warmup-V3}'s dispatch table; the layered baseline still pays $O(\deg_C(\text{L4 hub})) \approx O(n)$. \textsc{Warmup-V3} wins, by a factor that grows with $n$.}
+  \label{fig:warmup-bilateral}
 \end{figure}
 
-\begin{table}[t]
-  \centering
-  \begin{tabular}{lrrrr}
-    \toprule
-    Dataset & $n$ & $m$ & Simple-Wedge $\bar{t}$ & Recompute $\bar{t}$ \\
-    \midrule
-    \texttt{ca-GrQc} & TBD & TBD & TBD & TBD \\
-    \texttt{email-Enron} & TBD & TBD & TBD & TBD \\
-    \bottomrule
-  \end{tabular}
-  \caption{Real-world graph experiments. $\bar{t}$ in milliseconds, median over 1000 updates.}
-  \label{tab:real-world}
-\end{table}
+\textbf{Hubs on both sides (Figure~\ref{fig:warmup-bilateral}).}
+Planting $5$ hubs in $L_4$ as well pushes most $D$-updates into the
+$HH$ cell of \textsc{Warmup-V3}'s dispatch table, where the
+precomputed $A^{H*} \!\cdot\! B \!\cdot\! C^{*H}$ matrix yields an
+$O(1)$ lookup. At $n_{\text{per-layer}} = 2000$,
+\textsc{Layered-Simple-Wedge} costs $34.1\,\mu$s/update while
+\textsc{Warmup-V3} costs $6.5\,\mu$s/update --- a $5.2\times$ speedup,
+growing with $n$. The layered baseline must iterate
+$|N_C(\text{L4 hub})| = \Theta(n)$ entries; \textsc{Warmup-V3} reads
+one entry of its precomputed table. This is the mechanism promised by
+Section~\ref{sec:warmup}: the warm-up's win comes from precomputed
+matrix products at high-degree submatrices, and only when the input
+has hubs on both sides of the cyclic ordering.
 
-Figure~\ref{fig:update-time} (forthcoming) plots median per-update time
-against $n$ on log-log axes, with one curve per (algorithm, density)
-pair. We expect the \textsc{Simple-Wedge} curves to track a slope-one
-line, in agreement with the $O(n)$ bound established in
-Lemma~\ref{lem:simple}: each insertion or deletion touches
-$|N(u)| + |N(v)| \le 2n$ entries of the wedge matrix and performs an
-inner product of the same length. The \textsc{Naive-Recompute} curves
-are expected to be visibly steeper, reflecting the additional $O(m)$
-contribution from rescanning all wedges per update; on the dense
-$G(n,p)$ regime where $m = \Theta(n^{2})$, this should manifest as a
-slope close to two.
+\subsection{Caveat}
+\label{sec:experiments:caveat}
 
-Figure~\ref{fig:crossover} (forthcoming) reports cumulative running time
-against the number of updates for a fixed graph size, isolating the
-break-even point at which the constant-factor overhead of maintaining
-$W$ is amortised by the savings on each subsequent query. We anticipate
-that the crossover sits at a small number of updates on dense graphs,
-where each \textsc{Naive-Recompute} pass is already costly, and shifts
-right on sparse graphs, where a single recompute is cheap and the
-dynamic algorithm has less to amortise against. The qualitative
-prediction is consistent with the discussion in~\cite{HHH22} on why
-maintenance pays off only once update streams grow long.
-
-Table~\ref{tab:real-world} (TBD) reports the measured $n$, $m$, median
-\textsc{Simple-Wedge} update time, and an indicative
-\textsc{Naive-Recompute} time on the SNAP graph
-\texttt{ca-GrQc}~\cite{SNAP}, together with peak memory usage of the
-wedge matrix. The \texttt{email-Enron} row is left as a placeholder for
-a future sparse-wedge implementation; the dense $W$ matrix used here
-does not scale to that size in pure Python.
-
-\subsection{Connection to the theoretical bounds}
-\label{sec:experiments:theory}
-%% SECTIONS.md §7.4. Caveat: we don't implement warm-up §5; only Simple-Wedge.
-We stress that this study benchmarks only \textsc{Simple-Wedge}. We do
-\emph{not} implement the restricted algorithm of
-Section~\ref{sec:warmup}, whose key step
-(Theorem~\ref{thm:fmm-step}) requires both chunked maintenance with
-amortised reconciliation across phases and a competitive rectangular
-fast matrix multiplication routine. Building such a system to a
-trustworthy standard is a multi-week engineering effort and falls
-outside the scope of an expository paper. Within this scope, the
-forthcoming numbers are intended to confirm two qualitative
-predictions of Section~\ref{sec:simple}: that dynamic wedge-maintenance
-becomes dramatically faster than recomputation once the update stream
-is long enough to amortise the matrix bookkeeping, and that the $O(n)$
-worst-case bound of Lemma~\ref{lem:simple} is loose on sparse graphs,
-where $m = \Theta(n)$ and only a constant number of wedge entries
-change, but tight on dense graphs, where almost every entry of $W$
-along $N(u) \cup N(v)$ must move. What our experiment cannot speak to
-is the central practical question raised by~\cite{AssadiShah25}:
-whether the constants hidden inside rectangular FMM~\cite{ADW25}
-permit the asymptotic improvement over~\cite{HHH22} to materialise on
-graph sizes one is likely to encounter in practice. We flag that as an
-open empirical direction.
+We implemented \textsc{Warmup-V3} faithfully \emph{in shape} but with
+NumPy GEMM standing in for fast rectangular FMM (no practical
+implementation of the latter exists at our scale; even Strassen's
+algorithm needs $n$ in the thousands to break even with
+BLAS~\cite{ADW25}). The $O(n^3)$ GEMM precompute is large in absolute
+terms: at $n_{\text{per-layer}} = 2000$ it takes $23$\,s, against
+$0.10$\,s for \textsc{Layered-Simple-Wedge}. Whether the warm-up's
+per-update $O(m^{2/3 - \varepsilon_1})$ actually beats the layered
+baseline's $O(m^{1/2})$ in wall-clock, with FMM in place, is the
+central practical question raised by~\cite{AssadiShah25}; our
+experiments cannot answer it because we do not have rectangular FMM.
+What our experiments \emph{can} establish is that the warm-up's
+class-routing mechanism, in isolation from its FMM ingredient, helps
+only on graphs whose hub structure makes $HH$-class queries fire
+frequently --- which is precisely the structural assumption baked
+into the design of Section~\ref{sec:warmup}.
 
 %% =========================================================================
 \section{Conclusion and further work}
@@ -1391,8 +1361,11 @@ five constraints (the rectangular FMM constraints) bind tightly
 and the others have slack; this clarifies which inequalities are
 the load-bearing parts of the parameter trade-off. The
 supporting dimension analysis (Theorem~\ref{thm:fmm-step}) is
-taken from the source paper. We benchmarked the baseline algorithm
-against naive recomputation in Section~\ref{sec:experiments}.
+taken from the source paper. In Section~\ref{sec:experiments} we located, empirically, the input
+regime in which the warm-up's class-routing actually pays off ---
+graphs with hubs on both sides of the cyclic ordering --- by
+contrasting it with a layer-aware baseline that already captures
+most of the warm-up's benefit on simpler inputs.
 
 We highlight three directions for further work. First, the gap between the
 $O(m^{2/3-\varepsilon})$ upper bound of~\cite{AssadiShah25} and the

@@ -60,6 +60,7 @@ def layered_hub(
     low_deg: int = 5,
     hub_density: float = 0.5,
     seed: int = 0,
+    k_hubs_l4: int = 0,
 ) -> LayeredGraph:
     """Build a planted-hub layered graph.
 
@@ -67,11 +68,15 @@ def layered_hub(
     many random edges to the next layer. Each non-hub gets `low_deg` random
     edges to the next layer.
 
+    Hubs are planted in L1 and L2 (the paper-§3 setup). Setting k_hubs_l4 > 0
+    additionally plants L4 hubs (heavy in C toward L3) — used by §3.6.2 to
+    trigger HH queries in Warmup_v3.
+
     Class bounds are set wide enough that streams of moderate length cannot
     push any vertex out of its class.
     """
-    if k_hubs >= n_per_layer:
-        raise ValueError("k_hubs must be < n_per_layer")
+    if k_hubs >= n_per_layer or k_hubs_l4 >= n_per_layer:
+        raise ValueError("k_hubs / k_hubs_l4 must be < n_per_layer")
     rng = random.Random(seed)
 
     L1 = range(0, n_per_layer)
@@ -85,10 +90,10 @@ def layered_hub(
     if hub_target >= n_per_layer:
         hub_target = n_per_layer - 1
 
-    # Hubs live in L1 and L2 only (paper §3.6 asks for L1/L2 hubs).
     hubs_L1 = set(list(L1)[:k_hubs])
     hubs_L2 = set(list(L2)[:k_hubs])
-    hubs = hubs_L1 | hubs_L2
+    hubs_L4 = set(list(L4)[:k_hubs_l4])
+    hubs = hubs_L1 | hubs_L2 | hubs_L4
 
     edges_set: set[tuple[int, int]] = set()
 
@@ -105,18 +110,21 @@ def layered_hub(
             edges_set.add(e)
             added += 1
 
-    # L1 ↔ L2: hubs in L1 connect heavily to L2 (any L2 vertex).
+    # L1 ↔ L2: hubs in L1 connect heavily to L2.
     for u in L1:
         deg = hub_target if u in hubs_L1 else low_deg
         _connect(u, L2, deg)
     # L2 ↔ L3: hubs in L2 connect heavily to L3.
     for u in L2:
-        # Already has edges from L1; but we want L2->L3 separately.
         deg = hub_target if u in hubs_L2 else low_deg
         _connect(u, L3, deg)
-    # L3 ↔ L4: low-degree.
+    # L3 ↔ L4: low-degree from the L3 side; L4 hubs may add more below.
     for u in L3:
         _connect(u, L4, low_deg)
+    # L4 hubs heavily connect to L3 (driving deg_C(L4 hub) high).
+    for u in L4:
+        if u in hubs_L4:
+            _connect(u, L3, hub_target)
     # L4 ↔ L1: low-degree (closes the cycle).
     for u in L4:
         _connect(u, L1, low_deg)
@@ -137,7 +145,7 @@ def layered_hub(
     for v in L3:
         classes[v] = "S"
     for v in L4:
-        classes[v] = "L"
+        classes[v] = "H" if v in hubs_L4 else "L"
 
     # Bounds: hubs may grow up to layer size - 1; lows have a comfortable cap.
     low_cap = max(low_deg + 50, hub_target // 4)

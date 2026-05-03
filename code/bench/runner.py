@@ -591,6 +591,85 @@ def experiment_3_6_1(n_seeds: int = 3, n_ops: int = 200) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Experiment 3.6.2 — bilateral-hub graphs (HH-query regime)
+# ---------------------------------------------------------------------------
+
+def experiment_3_6_2(n_seeds: int = 3, n_ops: int = 200) -> None:
+    """Bilateral-hub graphs: hubs in L1 AND L4. Stream is hub-biased D-only,
+    so a large fraction of D-edge updates touch hubs on both sides — the HH
+    query regime where Warmup_v3 has an O(1) lookup via precomputed ABC^HH
+    while LayeredSimple still pays O(deg_C(L4 hub)) ≈ O(n).
+    """
+    print("[3.6.2] BILATERAL hubs — HH-query regime")
+    sizes = [200, 500, 1000, 2000]
+    k_hubs = 5
+    hub_bias = 0.85
+    rows = []
+    for n_per in sizes:
+        for algo, builder in _THREE_BUILDERS.items():
+            per_op_us = []
+            build_s = []
+            ms = []
+            for seed in range(n_seeds):
+                g = layered_hub(
+                    n_per_layer=n_per, k_hubs=k_hubs, k_hubs_l4=k_hubs,
+                    low_deg=5, hub_density=0.5, seed=seed,
+                )
+                checker = ClassChecker(
+                    g.classes, g.class_bounds, g.initial_degrees()
+                )
+                D_pool = [
+                    (u, v) for u, v in g.edge_pool
+                    if {g.layer_of(u), g.layer_of(v)} == {0, 3}
+                ]
+                ops = hub_biased(
+                    g.n, g.edges, g.hubs, n_ops=n_ops,
+                    hub_bias=hub_bias, seed=seed * 17 + 11,
+                    pool=D_pool, class_check=checker,
+                )
+
+                t_build_0 = time.perf_counter()
+                c, is_warmup, _ = builder(g)
+                t_build = time.perf_counter() - t_build_0
+                if t_build > CELL_TIMEOUT_S:
+                    print(f"    {algo} build TIMEOUT at n_per={n_per}")
+                    per_op_us = []
+                    break
+
+                elapsed = time_stream(c, ops, warmup_v3=is_warmup)
+                if elapsed > CELL_TIMEOUT_S:
+                    per_op_us = []
+                    break
+                per_op_us.append(elapsed * 1e6 / n_ops)
+                build_s.append(t_build)
+                ms.append(len(g.edges) + n_ops)
+                del c
+                gc.collect()
+
+            if per_op_us:
+                med, iqr = median_iqr(per_op_us)
+                med_build = statistics.median(build_s)
+                rows.append([
+                    "3.6.2", algo, n_per, k_hubs, hub_bias, n_ops,
+                    int(np.median(ms)), n_seeds, f"{med:.3f}",
+                    f"{iqr:.3f}", f"{med_build:.3f}", "ok",
+                ])
+                print(f"  {algo:>15s} n_per={n_per:>5d} {med:>9.2f} µs/op ± {iqr:>5.2f} | build {med_build:>6.2f}s")
+            else:
+                rows.append(["3.6.2", algo, n_per, k_hubs, hub_bias, n_ops,
+                             "", "", "", "", "", "TIMEOUT"])
+    write_csv(
+        RESULTS_DIR / "exp_3_6_2.csv",
+        [
+            "experiment", "algorithm", "n_per_layer", "k_hubs", "hub_bias",
+            "n_ops", "m", "n_seeds", "median_us_per_op", "iqr_us",
+            "build_s", "status",
+        ],
+        rows,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Experiment 3.7 — k_hubs sweep (stretch)
 # ---------------------------------------------------------------------------
 
@@ -657,6 +736,7 @@ EXPERIMENTS: dict[str, Callable[[], None]] = {
     "3.5": experiment_3_5,
     "3.6": experiment_3_6,
     "3.6.1": experiment_3_6_1,
+    "3.6.2": experiment_3_6_2,
     "3.7": experiment_3_7,
 }
 
