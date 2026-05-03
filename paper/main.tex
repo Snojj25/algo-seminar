@@ -198,6 +198,37 @@ room for an algebraic speedup~\cite[\S1]{AssadiShah25}.
   \label{tab:ladder}
 \end{table}
 
+This essay traces the algorithm through the IVM-for-cyclic-joins
+lens and asks one structural question: where, exactly, does the
+sub-$m^{2/3}$ improvement live? Our answer points at a single
+pressure point. The restricted variant (Section~\ref{sec:warmup})
+reduces every per-update query to a constant number of look-ups
+against stored matrix products, only one of which --- the
+dense-block product $A^{L*}\!\cdot\!B_{i,DD}$ of
+Section~\ref{sec:fmm} --- is a nontrivial use of FMM, and only that
+one has a cost governed by $\omega$. The phase mechanism of the
+full algorithm (Section~\ref{sec:phases}) promotes the restricted
+variant to a worst-case bound, but the per-update budget remains
+pinned to the same FMM step. Our two contributions probe this
+pressure point from complementary directions.
+\emph{Theoretically}, we trace the parameter trade-off into a
+five-inequality constraint system and give a closed-form
+certificate that the system is feasible at the conjectural optimum
+$\omega = 2$ (Lemma~\ref{lem:feasibility}); the certificate exposes
+\emph{which} constraints bind tight --- the two rectangular FMM
+constraints, not the threshold orderings --- and so isolates FMM as
+the load-bearing ingredient.
+\emph{Empirically}, we benchmark a faithful-in-shape implementation
+of the restricted variant against a layer-aware wedge baseline
+(Section~\ref{sec:experiments}); the comparison locates the input
+regime --- bilateral hubs on both sides of the cyclic ordering ---
+in which the warm-up's class-routing actually fires, and confirms
+that on simpler inputs the layered baseline already captures most
+of the benefit. The two angles converge: the algebraic improvement
+of~\cite{AssadiShah25} lives at the rectangular FMM step, and the
+surrounding machinery exists to feed that step well-conditioned
+inputs.
+
 %% =========================================================================
 \section{Related work}
 \label{sec:related}
@@ -1012,11 +1043,19 @@ $O(m^{2/3-\varepsilon_1})$.
 \section{The FMM step and the constraint system}
 \label{sec:fmm}
 
-The restricted algorithm relies on a single nontrivial use of fast
-matrix multiplication: the dense-block product
-$A^{L*}\!\cdot\!B_{i,DD}$, evaluated once per chunk transition. Its
-cost is determined by a rectangular FMM call whose dimensions are
-fixed by the size of $L_1$ and the dense subset of $L_2$.
+This section opens up the single pressure point of the restricted
+algorithm: the dense-block product $A^{L*}\!\cdot\!B_{i,DD}$,
+evaluated once per chunk transition. Every other ingredient of the
+warm-up respects the per-chunk budget by counting --- the eager-update
+bookkeeping, the lazy in-chunk evaluation, the threshold-class
+iterations --- but this product is the only nontrivial use of fast
+matrix multiplication in the algorithm, and the only step whose cost
+is governed by $\omega$. We bound that cost
+(Section~\ref{sec:fmm:step}), set up the constraint system the cost
+must satisfy together with three threshold orderings
+(Section~\ref{sec:fmm:constraints}), and exhibit a closed-form
+certificate of feasibility at $\omega = 2$ that pins down which
+constraints bind (Section~\ref{sec:fmm:closed-form}).
 
 \subsection{Cost of the rectangular FMM step}
 \label{sec:fmm:step}
@@ -1139,6 +1178,10 @@ force $\varepsilon_1 = 0$.
 Appendix~B of~\cite{AssadiShah25} carries out the analogous
 verification with the current numerical bounds of~\cite{ADW25}
 and confirms a strictly positive slack.
+Section~\ref{sec:experiments} revisits the same FMM step
+empirically, asking when its surrounding class-routing machinery
+actually fires --- the structural counterpart to the algebraic
+feasibility we just verified.
 
 %% =========================================================================
 \section{Phases and the full algorithm}
@@ -1220,7 +1263,11 @@ at $\omega = 2$).
 %% Owner: D. ~1.5 pages. SECTIONS.md "§7". Code in ../code/.
 %% No paper map -- this section is our contribution.
 
-The warm-up of Section~\ref{sec:warmup} avoids $O(n)$-per-update
+Section~\ref{sec:fmm} identified the rectangular FMM step as the
+algebraically load-bearing component of the restricted variant; this
+section is the empirical complement, asking the structural counterpart
+of the same question for the class-routing machinery that feeds that
+step. The warm-up of Section~\ref{sec:warmup} avoids $O(n)$-per-update
 enumeration when an endpoint is high-degree by storing matrix products
 restricted to high-degree submatrices and dispatching by class. We ask
 empirically: when does this class-routing actually pay off in
@@ -1336,36 +1383,46 @@ into the design of Section~\ref{sec:warmup}.
 
 We presented the recent algorithm of Assadi and Shah for
 dynamic $4$-cycle counting through the lens of incremental view
-maintenance for the cyclic four-way join. We surveyed the line of
-work culminating in their result (Section~\ref{sec:related}),
-recalled the layered reduction that lets us study the problem on a
-$4$-layered graph (Section~\ref{sec:reduction}), presented a simple
-$O(n)$ wedge-maintenance baseline (Section~\ref{sec:simple}), and
-exposed the conceptual core of the Assadi-Shah algorithm: the
-vertex-class partition with its precomputed FMM products
+maintenance for the cyclic four-way join, asking one guiding
+question throughout: where, exactly, does the sub-$m^{2/3}$
+improvement live? We surveyed the line of work culminating in
+their result (Section~\ref{sec:related}), recalled the layered
+reduction that lets us study the problem on a $4$-layered graph
+(Section~\ref{sec:reduction}), presented a simple $O(n)$
+wedge-maintenance baseline (Section~\ref{sec:simple}), and exposed
+the conceptual core of the Assadi-Shah algorithm: the vertex-class
+partition with its precomputed FMM products
 (Section~\ref{sec:warmup}), the rectangular FMM step that drives
 the parameter trade-off (Section~\ref{sec:fmm}), and the phase
 mechanism that turns those precomputed products into a worst-case
-guarantee (Section~\ref{sec:phases}).
+guarantee (Section~\ref{sec:phases}). The trace isolates a single
+pressure point: the rectangular FMM product
+$A^{L*}\!\cdot\!B_{i,DD}$, the only step in the entire pipeline
+whose cost is governed by $\omega$.
 
-Our formal contribution is
-Lemma~\ref{lem:feasibility}: a closed-form algebraic certificate
-that the constraint system at the heart of the restricted
-algorithm is feasible at the conjectural optimum $\omega = 2$,
-with explicit rational parameters $\varepsilon_1 = 1/24$,
-$\varepsilon_2 = 5/24$, and $\varepsilon = 1/24$. Where the source
-paper verifies feasibility numerically with the current
-rectangular FMM bounds~(Appendix~B of~\cite{AssadiShah25}), the
-$\omega = 2$ closed form makes interpretable why two of the
-five constraints (the rectangular FMM constraints) bind tightly
-and the others have slack; this clarifies which inequalities are
-the load-bearing parts of the parameter trade-off. The
-supporting dimension analysis (Theorem~\ref{thm:fmm-step}) is
-taken from the source paper. In Section~\ref{sec:experiments} we located, empirically, the input
+Our two formal contributions probe this pressure point from
+complementary directions. Lemma~\ref{lem:feasibility} is a
+closed-form algebraic certificate that the constraint system at
+the heart of the restricted algorithm is feasible at the
+conjectural optimum $\omega = 2$, with explicit rational
+parameters $\varepsilon_1 = 1/24$, $\varepsilon_2 = 5/24$, and
+$\varepsilon = 1/24$. Where the source paper verifies feasibility
+numerically with the current rectangular FMM
+bounds~(Appendix~B of~\cite{AssadiShah25}), the $\omega = 2$
+closed form makes interpretable why two of the five constraints
+(the rectangular FMM constraints) bind tightly while the others
+have slack, identifying FMM as the load-bearing ingredient of the
+parameter trade-off. The supporting dimension analysis
+(Theorem~\ref{thm:fmm-step}) is taken from the source paper. In
+Section~\ref{sec:experiments} we located, empirically, the input
 regime in which the warm-up's class-routing actually pays off ---
 graphs with hubs on both sides of the cyclic ordering --- by
 contrasting it with a layer-aware baseline that already captures
-most of the warm-up's benefit on simpler inputs.
+most of the warm-up's benefit on simpler inputs. The two angles
+agree: the algebraic improvement of~\cite{AssadiShah25} lives at
+the rectangular FMM step, and the surrounding class-routing
+machinery exists to feed that step the well-conditioned inputs
+(bilateral hubs) that justify its bookkeeping cost.
 
 We highlight three directions for further work. First, the gap between the
 $O(m^{2/3-\varepsilon})$ upper bound of~\cite{AssadiShah25} and the
