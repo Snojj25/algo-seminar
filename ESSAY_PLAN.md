@@ -67,9 +67,9 @@ Bonus material if space allows: re-derive that the constraint system (Eqs 2, 5�
 
 ### 5.1 What we implement
 
-**Algorithm 1 — Naive recompute (wedge-sum)**: on every edge update, recompute the 4-cycle count from scratch via the identity
-`#4-cycles = (1/2) · Σ_v binomial(W(v), 2)`,
-where `W(v)` is the number of wedges centred at `v`. Each recompute is O(n + m) to assemble W (one pass over the adjacency lists) plus O(n) to sum the binomials, giving O(n + m) per update. **Single fixed baseline; no algorithm switching across graph sizes** (F10). Brute force is used only as a tiny-graph (n ≤ 50) correctness oracle, never as the reported baseline.
+**Algorithm 1 — Naive recompute (path-pair)**: on every edge update, recompute the 4-cycle count from scratch via the identity
+`#4-cycles = (1/2) · Σ_{u<w} binomial(P[u,w], 2)`,
+where `P[u,w] = |N(u) ∩ N(w)|` is the number of length-2 paths between `u` and `w`. Equivalently, `P = A² − diag(deg)` (the diagonal of `A²` is the degree, which doesn't count distinct length-2 paths). Each recompute assembles `P` via NumPy `A @ A` in `O(n^ω)` (or `O(nm)` sparse), then sums the binomials in `O(n²)`. So per update is `Θ(n^ω + n²)` — *not* `O(n+m)` as previously written here. **Single fixed baseline; no algorithm switching across graph sizes** (F10). Brute force is used only as a tiny-graph (n ≤ 50) correctness oracle, never as the reported baseline.
 
 **Algorithm 2 — Simple O(n)** (paper Appendix A): maintain a wedge-count matrix W[u,v] = #wedges between u and v. On edge update (u, v):
 - Compute Δ(#4-cycles) = Σ_{w ∈ N(u)} W[w, v] (no correction term — paper Claim A.3 establishes correctness via the update-order rule below).
