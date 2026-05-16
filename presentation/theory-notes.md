@@ -4,6 +4,19 @@
 
 Read this once before the dry run. Each section maps to one or two slides.
 
+### Per-speaker reading priorities
+
+Each speaker should fully digest their own column. The other columns are nice-to-have for Q&A.
+
+| Speaker | Must read | Useful for Q&A |
+|---|---|---|
+| 1 (slides 1–4) | §1 (problem setting), §2.1 (landscape table) | §2.3 (lower bound), §7 (notation) |
+| 2 (slides 5–7) | §2.2 (where `m^{2/3}` comes from), §3.1–3.2 (FMM, OMv), §4.1 (phases) | §4.2–4.3 (degree classes, constraint system) |
+| 3 (slides 8–10) | §5 (cyclic-join lens), §4.2–4.4 (degree classes, constraints, closed-form) | §4.1 (phases), §3.1 (FMM) |
+| 4 (slides 11–13) | §6 (empirical study), §9 (likely audience questions) | §5.4 (why the lens helps), §4.4 (closed form, for Q&A) |
+
+Sections not listed for any speaker are general background everyone benefits from skimming once.
+
 ---
 
 ## 1. The problem setting

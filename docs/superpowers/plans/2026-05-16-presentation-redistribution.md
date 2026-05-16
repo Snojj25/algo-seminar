@@ -1,13 +1,43 @@
-# Speaker Notes — 15-minute presentation
+# Presentation Speaker Redistribution (Approach A) — Implementation Plan
 
-**For each slide:** the *script-in-bullets* (what to actually say), an explicit transition (how to hand off), and likely audience questions to prepare for. Time budgets are targets — rehearse with a stopwatch.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Global tone.** This is a *pitch*. We are not proving anything live. We are selling: "this is a real problem, here is the state of the art, here is what we contribute, here is the evidence". When in doubt, cut math, keep narrative.
+**Goal:** Realign the 4-speaker division of the 4-cycle counting presentation to a balanced 3-3-3-3 content-frame split, and bring `presentation/speaker-notes.md` back in sync with the current `presentation/slides.tex`. The slide deck is final and is not edited.
 
-**Handoff discipline.** Each speaker ends with a question. The next speaker opens by answering it. This is what makes 4 voices sound like one talk.
+**Architecture:** Two-file edit. `speaker-notes.md` is fully rewritten to (a) match the actual 13 frames in `slides.tex`, (b) reassign frames per Approach A, and (c) preserve the "each speaker hands off with a question, the next answers it" handoff discipline. `theory-notes.md` gets a single new section at the top mapping each speaker to the theory sections they own — the body of theory-notes is left intact as shared reference material.
+
+**Tech Stack:** Markdown only. No code. No slide edits.
+
+**Approach A — final frame assignments:**
+
+| Speaker | Frames in `slides.tex` | Total content frames | Target time |
+|---|---|---|---|
+| 1 | 1 (title) + 2 (motivating query) + 3 (dynamic setting) + 4 (landscape table) | 3 + title | ~3:35 |
+| 2 | 5 (where m^{2/3} comes from) + 6 (Assadi–Shah) + 7 (why MM) | 3 | ~3:30 |
+| 3 | 8 (cyclic-join lens) + 9 (scaffolding) + 10 (FMM essential) | 3 | ~3:30 |
+| 4 | 11 (empirical) + 12 (bilateral wins) + 13 (takeaway) + 14 (thanks) | 3 + thanks | ~3:35 |
+
+Total target: **~14:10**, leaving slack on a 15-min budget.
+
+**Key changes from the existing `speaker-notes.md`:**
+
+1. Slide 4 (landscape table) moves **from Speaker 2 to Speaker 1**.
+2. Slide 7 (why MM) — has no existing entry; **new content** under Speaker 2.
+3. Old "Slide 9 — Closed-form certificate" referencing `ε₁=1/24, ε₂=5/24` does not match the actual slide 10. Replaced with notes for the actual slide 10 ("FMM is essential, not incidental"). The `1/24` numerical material stays available as Q&A backup, sourced from `theory-notes.md`.
+4. Handoff lines between speakers are rewritten for the new boundaries.
 
 ---
 
+### Task 1: Rewrite Speaker 1 section of speaker-notes.md
+
+**Files:**
+- Modify: `presentation/speaker-notes.md` — replace the "## Speaker 1" section (currently covers slides 1–3, ending before "## Speaker 2") with the content below.
+
+- [ ] **Step 1: Replace the Speaker 1 section**
+
+Replace from the line `## Speaker 1 — The problem (3:30)` through (and not including) the line `## Speaker 2 — State of the art & the FMM surprise (3:30)` with:
+
+```markdown
 ## Speaker 1 — Frame the problem (3:35)
 
 Owns slides **1–4**: title, motivating query, fully dynamic setting, landscape table.
@@ -56,8 +86,27 @@ Owns slides **1–4**: title, motivating query, fully dynamic setting, landscape
 - *"Why 4-cycles and not just 4-cliques or triangles?"* — 4 is the smallest non-trivial cyclic conjunctive query. Cyclic joins of any even length reduce to this kind of problem.
 - *"Why does the landscape table not show the lower bound?"* — Mentioned in Speaker 2's section. Quick answer if asked early: `Ω(m^{1/2-γ})` under OMv.
 
+```
+
+- [ ] **Step 2: Verify the edit**
+
+Open `presentation/speaker-notes.md`, scroll to Speaker 1, confirm:
+- Slide numbering goes 1 → 2 → 3 → 4 (NOT stopping at 3).
+- Final handoff line is *"So why are 4-cycles stuck at two-thirds — and what changed?"*
+- No remaining `m^{2/3}` *explanation* in Speaker 1's section — only the fact that the bound exists.
+
 ---
 
+### Task 2: Rewrite Speaker 2 section of speaker-notes.md
+
+**Files:**
+- Modify: `presentation/speaker-notes.md` — replace the "## Speaker 2" section.
+
+- [ ] **Step 1: Replace the Speaker 2 section**
+
+Replace from `## Speaker 2 — State of the art & the FMM surprise (3:30)` through (and not including) `## Speaker 3` with:
+
+```markdown
 ## Speaker 2 — Prior art and the FMM bridge (3:30)
 
 Owns slides **5–7**: where `m^{2/3}` comes from, the 2025 Assadi–Shah result, why matrix multiplication is the right tool.
@@ -101,8 +150,28 @@ Owns slides **5–7**: where `m^{2/3}` comes from, the 2025 Assadi–Shah result
 - *"How exactly do phases avoid the FMM-vs-streaming problem?"* — Updates are batched into phases of `m^{1-δ}` updates. The next product is precomputed in the background. Q&A backup in theory-notes §4.1.
 - *"How is FMM different from regular MM?"* — FMM achieves `n^{ω}` with `ω < 3`. Regular schoolbook is `n^3`. Strassen 1969 was the first sub-cubic.
 
+```
+
+- [ ] **Step 2: Verify the edit**
+
+Confirm:
+- Speaker 2's section now contains exactly three slides (5, 6, 7).
+- Slide 7 ("Why MM?") is new — does not exist in the pre-edit speaker-notes.
+- The final handoff line is *"OK, but the whole algorithm is much more than one matrix product. What does it actually look like?"*
+- The opener answers Speaker 1's question about why 2/3 is special.
+
 ---
 
+### Task 3: Rewrite Speaker 3 section of speaker-notes.md
+
+**Files:**
+- Modify: `presentation/speaker-notes.md` — replace the "## Speaker 3" section.
+
+- [ ] **Step 1: Replace the Speaker 3 section**
+
+Replace from `## Speaker 3 — Our contribution (3:30)` through (and not including) `## Speaker 4` with:
+
+```markdown
 ## Speaker 3 — Our contribution (3:30)
 
 Owns slides **8–10**: the cyclic-join lens, the scaffolding around the MM step, the load-bearing argument.
@@ -146,8 +215,28 @@ Owns slides **8–10**: the cyclic-join lens, the scaffolding around the MM step
 - *"What's `ε` at current `ω`?"* — Around 0.01. The `1/24 ≈ 0.04` is at the conjectural `ω = 2`.
 - *"Are there other feasible points?"* — Almost certainly yes — the constraints are inequalities, not equalities. We just give one clean rational solution.
 
+```
+
+- [ ] **Step 2: Verify the edit**
+
+Confirm:
+- Speaker 3's section contains exactly three slides (8, 9, 10).
+- Slide 8 opens by answering Speaker 2's handoff question.
+- The `1/24` numerical content is preserved in Q&A, NOT in the body of slide 10's script (slide 10 doesn't show the numbers — only that the constraint system was analysed).
+- Slide 10's body reads the slide's block verbatim where indicated.
+
 ---
 
+### Task 4: Rewrite Speaker 4 section of speaker-notes.md
+
+**Files:**
+- Modify: `presentation/speaker-notes.md` — replace the "## Speaker 4" section.
+
+- [ ] **Step 1: Replace the Speaker 4 section**
+
+Replace from `## Speaker 4 — Experiments & takeaway (3:30)` through (and not including) `## Logistics` with:
+
+```markdown
 ## Speaker 4 — Experiments and takeaway (3:35)
 
 Owns slides **11–13** + thanks: empirical setup, the bilateral-hub finding, takeaway, thanks.
@@ -199,8 +288,29 @@ Owns slides **11–13** + thanks: empirical setup, the bilateral-hub finding, ta
 - *"Is this practical today?"* — Not directly — FMM implementations don't exist below Strassen. The framework already tells you when *combinatorial* routing helps; that's the practical takeaway.
 - *"Why is NumPy GEMM defensible if it isn't real FMM?"* — Because we're testing structural routing decisions, not the inner multiply. The shape of the win is robust to the matrix kernel.
 
+```
+
+- [ ] **Step 2: Verify the edit**
+
+Confirm:
+- Speaker 4's section contains exactly slides 11, 12, 13, 14 (thanks).
+- The "NumPy GEMM, not real FMM" caveat appears explicitly in slide 11's script.
+- Slide 12's script walks the three diagram options (bilateral / unilateral / no hubs) in the order the slide shows them.
+
 ---
 
+### Task 5: Update the Logistics section of speaker-notes.md
+
+**Files:**
+- Modify: `presentation/speaker-notes.md` — replace the "## Logistics" section.
+
+The existing cut-list references slide numbers from the pre-edit numbering (e.g. "Drop Slide 5" was the `m^{2/3}` slide — same number, fine; "Drop right column of Slide 9" referred to a no-longer-existing closed-form slide). Refresh.
+
+- [ ] **Step 1: Replace the Logistics section**
+
+Replace from `## Logistics` to end of file with:
+
+```markdown
 ## Logistics
 
 ### Rehearsal protocol
@@ -235,3 +345,94 @@ If you want to be over-prepared, prepare these on paper or as hidden slides afte
 - **B4.** The full results plot grid (paper Figure 8 series).
 
 You can hop to any of them via slide number in case of Q&A.
+```
+
+- [ ] **Step 2: Verify the edit**
+
+Confirm:
+- The "cut" list references slide numbers that exist in the current `slides.tex` (slides 5, 9, 12 — all valid).
+- The "no Slide 9 closed-form" cut from the old version is gone.
+- File ends cleanly with the Backup slides section.
+
+---
+
+### Task 6: Add a speaker–theory mapping preamble to theory-notes.md
+
+**Files:**
+- Modify: `presentation/theory-notes.md` — insert a new section between the existing intro paragraph and section "## 1. The problem setting".
+
+- [ ] **Step 1: Insert the speaker–theory mapping**
+
+After the line `Read this once before the dry run. Each section maps to one or two slides.` and before the `---` separator preceding `## 1. The problem setting`, insert:
+
+```markdown
+
+### Per-speaker reading priorities
+
+Each speaker should fully digest their own column. The other columns are nice-to-have for Q&A.
+
+| Speaker | Must read | Useful for Q&A |
+|---|---|---|
+| 1 (slides 1–4) | §1 (problem setting), §2.1 (landscape table) | §2.3 (lower bound), §7 (notation) |
+| 2 (slides 5–7) | §2.2 (where `m^{2/3}` comes from), §3.1–3.2 (FMM, OMv), §4.1 (phases) | §4.2–4.3 (degree classes, constraint system) |
+| 3 (slides 8–10) | §5 (cyclic-join lens), §4.2–4.4 (degree classes, constraints, closed-form) | §4.1 (phases), §3.1 (FMM) |
+| 4 (slides 11–13) | §6 (empirical study), §9 (likely audience questions) | §5.4 (why the lens helps), §4.4 (closed form, for Q&A) |
+
+Sections not listed for any speaker are general background everyone benefits from skimming once.
+
+```
+
+- [ ] **Step 2: Verify the edit**
+
+Confirm:
+- New section is between the intro and `## 1. The problem setting`.
+- Each speaker has at least one "must read" entry.
+- All section numbers referenced (`§1`, `§2.1`, …) exist in the current `theory-notes.md` body.
+
+---
+
+### Task 7: Final cross-check — read top-to-bottom
+
+- [ ] **Step 1: Re-open both files and read end-to-end**
+
+Open `presentation/speaker-notes.md` and `presentation/theory-notes.md`. Verify:
+
+1. `speaker-notes.md` has exactly four `## Speaker N` sections, in order 1, 2, 3, 4.
+2. Slide numbers in `speaker-notes.md` go 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 — no gaps, no duplicates.
+3. Each speaker's *final* line is a handoff question that the next speaker's *first* slide answers (except Speaker 4, which closes with thanks).
+4. No reference to a "closed-form certificate" slide (it doesn't exist in `slides.tex`).
+5. The numerical `1/24, 5/24` material appears only in Q&A and in `theory-notes.md`, never in the body of any slide script.
+6. `theory-notes.md` has the new "Per-speaker reading priorities" table.
+
+- [ ] **Step 2: Time check**
+
+Sum the time budgets in `speaker-notes.md`:
+
+- Speaker 1: 15 + 80 + 60 + 60 = 215 s = 3:35
+- Speaker 2: 80 + 70 + 60 = 210 s = 3:30
+- Speaker 3: 80 + 70 + 60 = 210 s = 3:30
+- Speaker 4: 60 + 90 + 60 + 5 = 215 s = 3:35
+
+Total: ~14:10. Within the 15:00 budget with ~50 s of slack. Per-speaker spread is 3:30–3:35 (within the user's 3–5 minute requirement).
+
+If any number drifted during the edits, recompute and either trim a beat or relax the per-slide target.
+
+---
+
+### Task 8: Ask about committing
+
+- [ ] **Step 1: Ask the user**
+
+Per the user's hard rule on commits (see global `CLAUDE.md`), do NOT commit. Use `AskUserQuestion` with an explicit options-show-the-commit-message form to propose committing the two updated files (and the plan doc) as one commit. If denied, leave the working tree dirty and let the user handle it.
+
+---
+
+## Self-Review (run before handing off)
+
+**Spec coverage.** The user asked for: (a) 4 sections for 4 speakers, (b) each speaker can prep their part separately with light context only, (c) each speaker talks 3–5 minutes. Tasks 1–4 cover (a); Task 6 (the per-speaker theory mapping) supports (b); Task 7 step 2 validates (c).
+
+**Placeholder scan.** No "TBD", "TODO", "fill in later" anywhere. Each script step has actual speakable content.
+
+**Type consistency.** Slide numbers are consistent with `slides.tex` frame order. Speaker numbers 1–4 are consistent throughout. The two-angles framing ("theoretical / empirical → one binding constraint / one firing regime") is consistent between Speaker 3's slide 10 and Speaker 4's slide 13.
+
+**Out of scope (per user instruction).** `presentation/slides.tex` is NOT edited. No LaTeX changes. No `.pdf` regeneration steps.
