@@ -7,6 +7,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[slovene]{babel}
 \usepackage{microtype}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{booktabs}
@@ -19,10 +20,10 @@
 \newcommand{\bigO}{O}
 
 % Title-page data.
-\title{Counting 4-Cycles in Fully Dynamic Graphs}
-\subtitle{A Cyclic-Join Perspective}
-\author{Speaker 1 \and Speaker 2 \and Speaker 3 \and Speaker 4}
-\institute{Algorithms seminar -- mock PODS 2025}
+\title{Štetje 4-ciklov v polno dinamičnih grafih}
+\subtitle{Z vidika cikličnih stikov}
+\author{Govorec 1 \and Govorec 2 \and Govorec 3 \and Govorec 4}
+\institute{Seminar iz algoritmov -- poskusna predstavitev za PODS 2025}
 \date{}
 
 \begin{document}
@@ -33,11 +34,11 @@
 \end{frame}
 
 % =========================================================================
-% Speaker 1 -- The problem (3:30)
+% Govorec 1 -- Problem (3:30)
 % =========================================================================
 
 % ---------------------------------------------------------------
-\begin{frame}{A motivating query: cyclic patterns in a transaction graph}
+\begin{frame}{Motivacijski primer: ciklični vzorci v grafu transakcij}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.42\textwidth}
       \centering
@@ -71,57 +72,57 @@
       \end{tikzpicture}
 
       \vspace{0.4em}
-      {\scriptsize\emph{accounts (nodes), transactions (arrows)}}
+      {\scriptsize\emph{računi (vozlišča), transakcije (puščice)}}
     \end{column}
     \begin{column}{0.58\textwidth}
-      Account $a$ pays $b$, $b$ pays $c$, $c$ pays $d$, $d$ pays back to $a$ -- a \alert{4-cycle in the transaction graph}, and a classic pattern of interest in fraud detection.
+      Z računa $a$ gre nakazilo na račun $b$, z $b$ na $c$, s $c$ na $d$ in z $d$ nazaj na $a$ -- to je \alert{4-cikel v grafu transakcij} in značilen vzorec pri odkrivanju goljufij.
 
       \medskip
-      Formally, this is a \alert{cyclic conjunctive query}: four relations joined in a loop. The size of its answer is exactly the number of 4-cycles in the graph.
+      Formalno gre za \alert{ciklično konjunktivno poizvedbo}: štiri relacije, sklenjene v zanko. Število rezultatov poizvedbe je natanko število 4-ciklov v grafu.
 
       \medskip
-      The same structure appears in many settings -- citation loops, mutual-follow communities, recommendation cycles.
+      Enaka struktura se pojavlja v številnih primerih -- cikli citatov, skupine, ki si vzajemno sledijo na družbenih omrežjih, priporočilne zanke.
 
       \medskip
-      \alert{And the underlying graph is constantly evolving.}
+      \alert{Pri tem se graf neprestano spreminja.}
     \end{column}
   \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{The fully dynamic setting}
-  Every new transaction inserts an edge; deletions are equally permitted. After \emph{every} update, the system must report the exact 4-cycle count.
+\begin{frame}{Polno dinamično okolje}
+  Vsaka nova transakcija doda eno povezavo; prav tako so dovoljena brisanja. Po \emph{vsaki} posodobitvi mora sistem sporočiti natančno število 4-ciklov.
 
   \vspace{0.6em}
-  Recomputing from scratch is prohibitively slow on large graphs. We require fast per-update maintenance.
+  Ponovno izračunavanje od začetka je za velike grafe predrago. Potrebujemo hitro posodabljanje pri vsaki spremembi.
 
   \vspace{0.6em}
-  \begin{block}{Worst-case, not amortised}
-    The cost we measure is the \emph{slowest} update -- not the average over a sequence.
+  \begin{block}{V najslabšem primeru, ne amortizirano}
+    Strošek, ki ga merimo, je čas \emph{najpočasnejše} posodobitve -- ne pa povprečje čez celotno zaporedje posodobitev.
 
     \medskip
-    Database systems are sensitive to tail latency: a single one-second update is a production incident, even if the mean is fast.
+    Sistemi podatkovnih baz so občutljivi na repne zakasnitve: že ena sama posodobitev, dolga sekundo, je za produkcijo težava, čeprav je povprečje hitro.
   \end{block}
 
   \vspace{0.6em}
-  The target is therefore sharp: beat recompute-from-scratch under a per-update worst-case guarantee.
+  Cilj je torej ambiciozen: biti hitrejši od ponovnega izračuna od začetka, in to z zagotovilom o najslabšem primeru za vsako posamezno posodobitev.
 \end{frame}
 
 % =========================================================================
-% Speaker 2 -- State of the art & the FMM surprise (3:30)
+% Govorec 2 -- Stanje stroke in presenečenje hitrega množenja matrik (3:30)
 % =========================================================================
 
 % ---------------------------------------------------------------
-\begin{frame}{The landscape: three small patterns}
-  Best known per-update maintenance cost, for each pattern:
+\begin{frame}{Pokrajina: trije majhni vzorci}
+  Doslej najboljši strošek vzdrževanja na posodobitev za posamezen vzorec:
 
   \vspace{0.6em}
   \centering
   \begin{tabular}{lcc}
     \toprule
-    Pattern & Shape & Best per-update cost \\
+    Vzorec & Oblika & Najboljši strošek na posodobitev \\
     \midrule
-    Triangle (3-cycle) &
+    Trikotnik (3-cikel) &
       \raisebox{-0.4\height}{\begin{tikzpicture}[scale=0.30]
         \node[circle,fill=black,inner sep=0pt,minimum size=3pt] (a) at (0,1) {};
         \node[circle,fill=black,inner sep=0pt,minimum size=3pt] (b) at (-0.87,-0.5) {};
@@ -129,7 +130,7 @@
         \draw[thick] (a)--(b)--(c)--(a);
       \end{tikzpicture}}
       & $\sqrt{m}$ \\
-    4-clique &
+    4-klika &
       \raisebox{-0.4\height}{\begin{tikzpicture}[scale=0.30]
         \node[circle,fill=black,inner sep=0pt,minimum size=3pt] (a) at (0,1) {};
         \node[circle,fill=black,inner sep=0pt,minimum size=3pt] (b) at (1,0) {};
@@ -139,7 +140,7 @@
         \draw[thick] (a)--(c); \draw[thick] (b)--(d);
       \end{tikzpicture}}
       & $m$ \\
-    \alert{4-cycle} &
+    \alert{4-cikel} &
       \raisebox{-0.4\height}{\begin{tikzpicture}[scale=0.30]
         \node[circle,fill=red!70!black,inner sep=0pt,minimum size=3pt] (a) at (0,1) {};
         \node[circle,fill=red!70!black,inner sep=0pt,minimum size=3pt] (b) at (1,0) {};
@@ -154,29 +155,29 @@
   \vspace{1.0em}
   \raggedright
   \begin{itemize}
-    \item Triangles and 4-cliques settle at clean, natural exponents.
-    \item \alert{4-cycles sit at an unusual $2/3$} -- neither square root nor linear.
-    \item That $2/3$ bound stood as the state of the art for \alert{over a decade}.
+    \item Trikotniki in 4-klike imajo jasne, naravne eksponente.
+    \item \alert{4-cikli imajo nenavaden eksponent $2/3$} -- niti kvadratni koren niti linearno.
+    \item Meja $2/3$ je veljala za najboljši znani rezultat \alert{več kot desetletje}.
   \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{Where does the $m^{2/3}$ bound come from?}
+\begin{frame}{Od kod izvira meja $m^{2/3}$?}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.62\textwidth}
-      Every algorithm in this space exploits the same observation: vertex degrees are highly unequal.
+      Vsak algoritem v tem prostoru izkorišča isto opazko: stopnje vozlišč so zelo različne.
 
       \vspace{0.6em}
       \begin{itemize}
-        \item Few \alert{high-degree} vertices (e.g.\ banks, large merchants) -- each expensive to process.
-        \item Many \alert{low-degree} vertices -- each cheap individually.
+        \item Malo \alert{vozlišč visoke stopnje} (npr.\ banke, veliki trgovci); obdelava vsakega je draga.
+        \item Veliko \alert{vozlišč nizke stopnje}; vsako zase je poceni.
       \end{itemize}
 
       \vspace{0.6em}
-      Counting 4-cycles separately for the two classes, and choosing the threshold so the two costs balance, yields exactly $m^{2/3}$.
+      Če 4-cikle štejemo ločeno za oba razreda in prag izberemo tako, da se stroška uravnotežita, dobimo natanko $m^{2/3}$.
 
       \vspace{0.6em}
-      This balance is the \alert{natural ceiling} for any combinatorial algorithm operating one edge at a time.
+      To je \alert{naravna zgornja meja} za vsak kombinatorični algoritem, ki povezave obdeluje posamično.
     \end{column}
     \begin{column}{0.36\textwidth}
       \centering
@@ -192,7 +193,7 @@
         }
       \end{tikzpicture}
 
-      {\scriptsize high-degree: one vertex, many edges}
+      {\scriptsize visoka stopnja: eno vozlišče, veliko povezav}
 
       \vspace{0.8em}
       \begin{tikzpicture}[
@@ -210,38 +211,38 @@
         \draw[gray!70,thin] (ne) -- (nf);
       \end{tikzpicture}
 
-      {\scriptsize low-degree: many vertices, few edges each}
+      {\scriptsize nizka stopnja: veliko vozlišč, malo povezav}
     \end{column}
   \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{The 2025 result of Assadi and Shah}
-  Assadi and Shah (PODS 2025) finally broke the wall, achieving worst-case update time $m^{2/3-\varepsilon}$ for a constant $\varepsilon > 0$.
+\begin{frame}{Rezultat Assadija in Shaha (2025)}
+  Assadi in Shah (PODS 2025) sta končno presegla to mejo: dosegla sta čas posodobitve $m^{2/3-\varepsilon}$ v najslabšem primeru, za neko konstanto $\varepsilon > 0$.
 
   \vspace{0.4em}
-  The unexpected ingredient: \alert{fast matrix multiplication}.
+  Nepričakovana sestavina: \alert{hitro množenje matrik}.
 
   \vspace{0.6em}
-  Why is that surprising?
+  Zakaj je to presenetljivo?
   \begin{itemize}
-    \item Fast matrix multiplication is a \alert{bulk} primitive -- efficient only when applied to two large matrices at once.
-    \item Our setting is \alert{streaming} -- edges arrive one at a time.
-    \item Folklore held that these two are incompatible.
+    \item Hitro množenje matrik je \alert{množična} operacija -- učinkovita je le, če imamo na voljo dve veliki matriki in ju pomnožimo naenkrat.
+    \item Naš problem je nasproten, \alert{tokovni} -- povezave prihajajo posamično, ena za drugo.
+    \item V stroki je veljalo, da sta pristopa nezdružljiva.
   \end{itemize}
 
   \vspace{0.4em}
-  \begin{block}{Reconciliation: phases}
-    The update stream is organised into phases. During each phase, the algorithm answers queries against a previously computed matrix product while the next product is precomputed in the background, amortised across the phase. At the phase boundary, the two products swap.
+  \begin{block}{Uskladitev: faze}
+    Tok posodobitev razdelimo v faze. Med vsako fazo algoritem na poizvedbe odgovarja s pomočjo produkta matrik, izračunanega v prejšnji fazi, medtem ko se naslednji produkt sproti računa v ozadju -- strošek je porazdeljen čez celotno fazo. Ob koncu faze se produkta zamenjata.
   \end{block}
 \end{frame}
 
 % =========================================================================
-% Speaker 3 -- Our contribution (3:30)
+% Govorec 3 -- Naš prispevek (3:30)
 % =========================================================================
 
 % ---------------------------------------------------------------
-\begin{frame}{Why matrix multiplication?}
+\begin{frame}{Zakaj množenje matrik?}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.42\textwidth}
       \centering
@@ -263,30 +264,30 @@
       \end{tikzpicture}
 
       \vspace{0.6em}
-      {\small Two 2-hop paths from $1$ to $3$\\
-      (\textcolor{blue!70!black}{$1\!\to\!2\!\to\!3$} + \textcolor{red!70!black}{$1\!\to\!4\!\to\!3$})\\
-      \alert{= one 4-cycle.}}
+      {\small Dve 2-koračni poti od $1$ do $3$\\
+      (\textcolor{blue!70!black}{$1\!\to\!2\!\to\!3$} in \textcolor{red!70!black}{$1\!\to\!4\!\to\!3$})\\
+      \alert{skupaj tvorita en 4-cikel.}}
     \end{column}
     \begin{column}{0.58\textwidth}
-      A 4-cycle is \alert{two 2-hop paths sharing the same pair of endpoints}.
+      4-cikel sestavljata \alert{dve 2-koračni poti, ki si delita isti par krajišč}.
 
       \medskip
-      Counting 4-cycles therefore reduces to: for every pair of vertices $(u, v)$, how many 2-hop paths connect them?
+      Štetje 4-ciklov se torej prevede na naslednje vprašanje: za vsak par vozlišč $(u, v)$, koliko 2-koračnih poti poteka med njima?
 
       \medskip
-      The answer is a table indexed by pairs of vertices -- one entry per pair.
+      Odgovor je tabela, indeksirana s pari vozlišč -- po en vnos za vsak par.
 
       \medskip
-      \alert{Computing this table is precisely a matrix multiplication.}
+      \alert{Računanje te tabele je natanko množenje matrik.}
 
       \medskip
-      The new algorithm uses \emph{fast} matrix multiplication for that step -- the origin of the asymptotic speedup.
+      Novi algoritem za ta korak uporablja \emph{hitro} množenje matrik -- v tem je vir asimptotične pospešitve.
     \end{column}
   \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{The cyclic-join lens: where the speedup originates}
+\begin{frame}{Pogled cikličnega stika: od kod izvira pospešitev}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.42\textwidth}
       \centering
@@ -318,103 +319,103 @@
         \draw[cedge] (2.4, 0.7) -- (3.6, 0);
         \draw[cedge] (2.4, 0) -- (3.6, 0.7);
         \draw[cedge,dashed] (3.6, 1.4) to[bend left=55] (0, 1.4);
-        \node[blue!70!black, font=\scriptsize\bfseries] at (0.6, -0.5) {matrix $A$};
-        \node[red!70!black, font=\scriptsize\bfseries] at (1.8, -0.5) {matrix $B$};
+        \node[blue!70!black, font=\scriptsize\bfseries] at (0.6, -0.5) {matrika $A$};
+        \node[red!70!black, font=\scriptsize\bfseries] at (1.8, -0.5) {matrika $B$};
       \end{tikzpicture}
 
       \vspace{0.5em}
-      {\scriptsize $A \cdot B$ = the 2-path table from slide 7.}
+      {\scriptsize $A \cdot B$ je tabela 2-koračnih poti s prejšnje prosojnice.}
     \end{column}
     \begin{column}{0.58\textwidth}
-      Each vertex of the 4-cycle from slide 7 plays one of four \alert{roles}: position $1$, $2$, $3$, or $4$.
+      Vsako vozlišče 4-cikla s prejšnje prosojnice ima eno od štirih \alert{vlog}: položaj $1$, $2$, $3$ ali $4$.
 
       \medskip
-      Layer $L_i$ collects every vertex viewed as a candidate for role $i$ -- conceptually, four copies of the vertex set.
+      Plast $L_i$ je množica vseh vozlišč, gledanih kot kandidati za vlogo $i$ -- konceptualno gre za štiri kopije iste množice vozlišč.
 
       \medskip
-      \alert{$A$}: edges between role-$1$ and role-$2$ candidates. \\
-      \alert{$B$}: edges between role-$2$ and role-$3$ candidates.
+      \alert{$A$}: povezave med kandidati za vlogi $1$ in $2$. \\
+      \alert{$B$}: povezave med kandidati za vlogi $2$ in $3$.
 
       \medskip
-      Then $A \cdot B$ counts, for each pair $(1, 3)$, the number of role-$2$ intermediates -- exactly the \alert{top half} of slide 7's 4-cycle.
+      Produkt $A \cdot B$ nam za vsak par $(1, 3)$ pove, koliko je vmesnih vozlišč v vlogi $2$ -- natanko \alert{zgornja polovica} 4-cikla s prejšnje prosojnice.
 
       \medskip
-      \alert{Fast} matrix multiplication evaluates this product strictly faster than the naive approach -- the shortcut that breaks $m^{2/3}$.
+      \alert{Hitro} množenje matrik ta produkt izračuna strogo hitreje kot naivni pristop -- prav to je bližnjica, ki prebije mejo $m^{2/3}$.
     \end{column}
   \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{One matrix step, supported by scaffolding}
-  We have located the matrix step. But a fundamental tension remains:
+\begin{frame}{En matrični korak, podprt z ogrodjem}
+  Določili smo ključni matrični korak. Vendar ostaja temeljna napetost:
 
   \vspace{0.5em}
-  \begin{block}{Bulk vs.~streaming}
-    Fast matrix multiplication is \alert{bulk}: it requires two complete matrices, multiplied at once.
+  \begin{block}{Množično proti tokovnemu}
+    Hitro množenje matrik je \alert{množično}: pričakuje dve celotni matriki, ki ju pomnožimo naenkrat.
 
     \medskip
-    The problem is \alert{streaming}: edges arrive one at a time.
+    Naš problem je \alert{tokovni}: povezave prihajajo posamično, ena za drugo.
   \end{block}
 
   \vspace{0.6em}
-  \alert{Every remaining component of the algorithm exists to bridge that gap:}
+  \alert{Vse ostale komponente algoritma obstajajo zato, da premostijo to vrzel:}
   \begin{itemize}
-    \item Degree partitioning $\to$ control matrix size and shape.
-    \item Chunked maintenance $\to$ amortise the bulk cost across many edges.
-    \item Phases $\to$ keep a precomputed product ready while the next is being assembled.
+    \item Razdelitev vozlišč po stopnji $\to$ nadzor nad velikostjo in obliko matrik.
+    \item Vzdrževanje po kosih $\to$ porazdelitev množičnega stroška na veliko povezav.
+    \item Faze $\to$ ohranjamo pripravljen produkt iz prejšnje faze, medtem ko v ozadju računamo naslednji produkt.
   \end{itemize}
 
   \vspace{0.4em}
-  All of this complexity serves a single purpose: render a bulk matrix multiplication compatible with a streaming workload.
+  Vsa ta kompleksnost ima en sam namen: omogočiti, da množično množenje matrik deluje pri tokovnih posodobitvah.
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{Fast matrix multiplication is essential, not incidental}
-  Could the speedup arise from a different part of the machinery? We verified that it cannot.
+\begin{frame}{Hitro množenje matrik je bistveno, ne le postransko}
+  Bi pospešitev lahko izvirala iz katerega koli drugega dela mehanizma? Pokazali smo, da ne more.
 
   \vspace{0.8em}
-  We analysed the algorithm's constraint system at the \alert{conjectural optimum} -- the best possible matrix-multiplication exponent.
+  Sistem omejitev algoritma smo analizirali pri \alert{domnevno optimalnem} eksponentu množenja matrik.
 
   \vspace{0.8em}
-  The conclusion is sharp:
+  Sklep je oster:
 
   \vspace{0.4em}
-  \begin{block}{\centering Remove the fast matrix multiplication step and the entire speedup vanishes; the bound collapses back to the prior $m^{2/3}$.}
+  \begin{block}{\centering Če odstranimo korak hitrega množenja matrik, celotna pospešitev izgine -- meja pade nazaj na prejšnji $m^{2/3}$.}
   \end{block}
 
   \vspace{0.8em}
-  Fast matrix multiplication is the \alert{load-bearing} step. The surrounding scaffolding exists to make it usable in a streaming setting.
+  Hitro množenje matrik je torej \alert{nosilni} korak. Vse okoliško ogrodje obstaja zgolj zato, da je ta korak uporaben v tokovnem okolju.
 \end{frame}
 
 % =========================================================================
-% Speaker 4 -- Experiments & takeaway (3:30)
+% Govorec 4 -- Eksperimenti in povzetek (3:30)
 % =========================================================================
 
 % ---------------------------------------------------------------
-\begin{frame}{Implementation and empirical setup}
-  Theory establishes that the matrix step is essential. The empirical question: \alert{on which inputs is the surrounding machinery actually worth its complexity?}
+\begin{frame}{Implementacija in eksperimentalna postavitev}
+  Teorija nam pove, da je matrični korak nujen. Empirično vprašanje pa je: \alert{pri katerih vhodih se zapleten okoliški mehanizem dejansko splača?}
 
   \vspace{0.6em}
-  \textbf{Three components, all in Python:}
+  \textbf{Trije sestavni deli, vsi v Pythonu:}
   \begin{itemize}
-    \item \alert{Algorithm.} A faithful implementation of the new algorithm's structure -- four layers, degree thresholds, chunked update maintenance, and the central matrix-multiplication step.
-    \item \alert{Baseline.} The natural simpler approach -- wedge-counting on the same four-layered graph, without the class-routing machinery.
-    \item \alert{Test harness.} A graph generator with controllable structure: random graphs, one-sided high-degree, two-sided high-degree, or uniformly low-degree.
+    \item \alert{Algoritem.} Zvesta implementacija strukture novega algoritma -- štiri plasti, pragi stopenj, vzdrževanje posodobitev po kosih in osrednji korak množenja matrik.
+    \item \alert{Izhodišče.} Naravni, preprostejši pristop -- štetje klinov na istem štiriplastnem grafu, brez mehanizma za usmerjanje po razredih.
+    \item \alert{Testno orodje.} Generator grafov z nadzorovano strukturo: naključni grafi, grafi z enostransko visoko stopnjo, grafi z obojestransko visoko stopnjo in grafi z enakomerno nizko stopnjo.
   \end{itemize}
 
   \vspace{0.4em}
-  Both algorithms run on identical graphs and identical update streams. We characterise \alert{the regime in which the new algorithm wins}, not its asymptotic exponent.
+  Oba algoritma poganjamo na enakih grafih in enakih tokovih posodobitev. Zanima nas \alert{režim, v katerem novi algoritem zmaga}, ne pa njegov asimptotični eksponent.
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{Where the algorithm wins: bilateral high-degree structure}
+\begin{frame}{Kdaj algoritem zmaga: obojestransko visoke stopnje}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \centering
       \includegraphics[width=\linewidth]{figures/fig8c_bilateral.pdf}
     \end{column}
     \begin{column}{0.48\textwidth}
-      The new algorithm outperforms the baseline exactly when the graph has \alert{high-degree vertices on opposite sides} of the cycle:
+      Novi algoritem prekaša izhodišče natanko takrat, ko ima graf \alert{vozlišča visoke stopnje na nasprotnih straneh} cikla:
 
       \vspace{0.4em}
       \centering
@@ -423,71 +424,71 @@
           hub/.style={circle,fill=red!70!black,inner sep=0pt,minimum size=8pt},
           small/.style={circle,fill=black!70,inner sep=0pt,minimum size=3pt},
         ]
-        % Bilateral
+        % Obojestransko
         \begin{scope}[xshift=-1.8cm]
           \node[hub]   (a) at (-0.5,0.5) {};
           \node[small] (b) at (0.5,0.5) {};
           \node[hub]   (c) at (0.5,-0.5) {};
           \node[small] (d) at (-0.5,-0.5) {};
           \draw[thick] (a)--(b)--(c)--(d)--(a);
-          \node at (0,-1.0) {\alert{bilateral} \checkmark};
+          \node at (0,-1.0) {\alert{obojestransko} \checkmark};
         \end{scope}
-        % Unilateral
+        % Enostransko
         \begin{scope}[xshift=0cm]
           \node[hub]   (a) at (-0.5,0.5) {};
           \node[small] (b) at (0.5,0.5) {};
           \node[small] (c) at (0.5,-0.5) {};
           \node[small] (d) at (-0.5,-0.5) {};
           \draw[thick] (a)--(b)--(c)--(d)--(a);
-          \node at (0,-1.0) {unilateral};
+          \node at (0,-1.0) {enostransko};
         \end{scope}
-        % None
+        % Brez vozlišč visoke stopnje
         \begin{scope}[xshift=1.8cm]
           \node[small] (a) at (-0.5,0.5) {};
           \node[small] (b) at (0.5,0.5) {};
           \node[small] (c) at (0.5,-0.5) {};
           \node[small] (d) at (-0.5,-0.5) {};
           \draw[thick] (a)--(b)--(c)--(d)--(a);
-          \node at (0,-1.0) {no hubs};
+          \node at (0,-1.0) {nizka stopnja};
         \end{scope}
       \end{tikzpicture}
 
       \vspace{0.3em}
-      On the other regimes, the baseline matches the new algorithm closely -- the extra machinery becomes overhead.
+      V ostalih režimih izhodišče dosega skoraj enako učinkovitost; dodatni mehanizem postane le režija.
 
       \vspace{0.3em}
-      The algorithm is therefore not a generic accelerant. It targets a \alert{specific structural regime} in which fast matrix multiplication is worth setting up.
+      Algoritem torej ni splošni pospeševalnik, temveč cilja na \alert{poseben strukturni režim}, v katerem se vzpostavitev hitrega množenja matrik dejansko izplača.
     \end{column}
   \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------
-\begin{frame}{Takeaway}
-  Two perspectives converge on the same conclusion:
+\begin{frame}{Povzetek}
+  Iz dveh perspektiv pridemo do istega sklepa:
   \begin{itemize}
-    \item \alert{Theoretical.} Only one step is load-bearing -- the fast matrix multiplication.
-    \item \alert{Empirical.} Only one regime requires the machinery -- bilateral high-degree.
+    \item \alert{Teoretično}: samo en korak je nosilen -- hitro množenje matrik.
+    \item \alert{Empirično}: samo en režim resnično potrebuje celoten mehanizem -- obojestransko visoke stopnje.
   \end{itemize}
 
   \vspace{0.4em}
-  Both indicate that the surrounding machinery exists \alert{to support one well-conditioned matrix multiplication}.
+  Oba vidika kažeta, da okoliški mehanizem obstaja zgolj zato, \alert{da omogoči eno dobro pripravljeno množenje matrik}.
 
   \vspace{0.6em}
-  \textbf{Open directions:}
+  \textbf{Smeri za nadaljnje delo:}
   \begin{itemize}
-    \item Larger cycles -- $k$-cycles beyond $4$.
-    \item Online detection of the bilateral regime, with fallback to the baseline.
-    \item Closed-form analysis at \emph{current} matrix-multiplication exponents.
+    \item Daljši cikli -- $k$-cikli za $k > 4$.
+    \item Sprotno zaznavanje obojestranskega režima, sicer pa preklop nazaj na izhodiščni algoritem.
+    \item Analiza v zaprti obliki pri \emph{trenutnih} eksponentih množenja matrik.
   \end{itemize}
 
   \vspace{0.3em}
-  More broadly, a clean lens on the tension between \alert{bulk and streaming computation} in dynamic data systems.
+  Širše gledano: gre za jasen vpogled v napetost med \alert{množičnim in tokovnim računanjem}, ki je prisotna povsod v dinamičnih podatkovnih sistemih.
 \end{frame}
 
 % ---------------------------------------------------------------
 \begin{frame}[standout]
-  Thank you. \\[0.5em]
-  \large Questions?
+  Hvala. \\[0.5em]
+  \large Vprašanja?
 \end{frame}
 
 \end{document}
